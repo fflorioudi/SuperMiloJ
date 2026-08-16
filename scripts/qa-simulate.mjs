@@ -4,12 +4,12 @@ import {
   freshPlayer,
   friction,
   gravity,
-  hasSolidFooting,
   height,
   makeWorld,
   moveEnemy,
   rectsOverlap,
-  resolveSolidCollision,
+  resolveHorizontalCollision,
+  resolveVerticalCollision,
   resizePlayerKeepingFeet,
   snapPlayerToFloor,
   tracks,
@@ -21,11 +21,11 @@ function audioExists(audio) {
 }
 
 function runPlayerRoute(world) {
-  const player = { x: 60, y: 360, vx: 0, vy: 0, w: 32, h: 46, grounded: false };
+  const player = { ...freshPlayer() };
   let falls = 0;
   let finished = false;
 
-  for (let frame = 0; frame < 4000; frame += 1) {
+  for (let frame = 0; frame < 6200; frame += 1) {
     const obstacleAhead = world.obstacles.some((obstacle) => obstacle.x > player.x && obstacle.x < player.x + 86 && player.y + player.h > obstacle.y + 8);
     const platformAhead = world.platforms.some((platform) => platform.y < 455 && platform.x > player.x + 12 && platform.x < player.x + 125 && platform.y > player.y - 150);
     if (player.grounded && (obstacleAhead || platformAhead)) {
@@ -36,24 +36,16 @@ function runPlayerRoute(world) {
     player.vx += 0.42;
     player.vx = Math.max(-4.35, Math.min(4.35, player.vx));
     const previousX = player.x;
+    player.x += player.vx;
+    for (const obstacle of world.obstacles) resolveHorizontalCollision(player, obstacle, previousX);
+    player.vx *= friction;
+
     const previousY = player.y;
     player.vy += gravity;
-    player.x += player.vx;
     player.y += player.vy;
-    player.vx *= friction;
     player.grounded = false;
-
-    for (const platform of world.platforms) {
-      if (rectsOverlap(player, platform) && hasSolidFooting(player, platform) && player.vy >= 0 && previousY + player.h <= platform.y + 4) {
-        player.y = platform.y - player.h;
-        player.vy = 0;
-        player.grounded = true;
-      }
-    }
-
-    for (const obstacle of world.obstacles) {
-      resolveSolidCollision(player, obstacle, previousX, previousY);
-    }
+    const solids = [...world.platforms, ...world.obstacles];
+    for (const solid of solids) resolveVerticalCollision(player, solid, previousY, 12);
 
     if (player.y > height + 80) {
       falls += 1;
@@ -85,7 +77,7 @@ function assertCore(name, condition, details = "") {
   const world = makeWorld(0);
   const player = { ...freshPlayer(), x: 90, y: 420 };
   const beforeFeet = player.y + player.h;
-  resizePlayerKeepingFeet(player, 36, 52);
+  resizePlayerKeepingFeet(player, 38, 64);
   assertCore("power-up resize keeps feet anchored", player.y + player.h === beforeFeet);
   snapPlayerToFloor(player, world);
   assertCore("snapPlayerToFloor lands on ground", player.y + player.h === 468);
@@ -110,10 +102,18 @@ function assertCore(name, condition, details = "") {
   const obstacle = world.obstacles[0];
   const player = { ...freshPlayer(), x: obstacle.x - 20, y: obstacle.y + 12, vx: 5, vy: 0, grounded: false };
   const previousX = player.x;
-  const previousY = player.y;
   player.x += player.vx;
-  resolveSolidCollision(player, obstacle, previousX, previousY);
+  resolveHorizontalCollision(player, obstacle, previousX);
   assertCore("player wall collider blocks side gaps", player.x + player.w <= obstacle.x && player.vx <= 0);
+}
+
+{
+  const platform = { x: 200, y: 360, w: 120, h: 20 };
+  const player = { ...freshPlayer(), x: 205, y: 330, vx: 7, vy: 3, grounded: false };
+  const previousY = player.y;
+  player.y += player.vy;
+  resolveVerticalCollision(player, platform, previousY, 12);
+  assertCore("platforms keep player from sinking visually", player.y + player.h <= platform.y || player.y >= platform.y + platform.h);
 }
 
 {
@@ -140,6 +140,7 @@ for (let level = 0; level < tracks.length; level += 1) {
   if (world.enemies.some((enemy) => enemy.y < 120 || enemy.y > 440 || enemy.min < 0 || enemy.max > world.length + 120)) issues.push("enemy outside expected patrol bounds");
   if (level >= 4 && world.obstacles.length === 0) issues.push("expected mandatory platform obstacles");
   if (world.obstacles.some((obstacle) => obstacle.y < 300 || obstacle.y + obstacle.h !== 468 || obstacle.w < 48)) issues.push("obstacle collider does not seal platform route");
+  if (world.checkpoints.length < 2) issues.push("expected at least two checkpoints");
 
   const runs = Array.from({ length: 10 }, () => runPlayerRoute(world));
   const failedRuns = runs.filter((run) => !run.finished || run.falls > 0);

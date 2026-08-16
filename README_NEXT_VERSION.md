@@ -15,12 +15,15 @@
 - Agregar tutorial corto en el nivel 1 con bloques faciles, un mate visible y un enemigo de practica.
 - Hecho: algunos niveles medios y avanzados obligan a subir por plataformas mediante muros de escenario.
 - Hecho: cerrar rendijas entre muros y plataformas para que la dificultad venga del salto, no de bugs de hitbox.
+- Hecho: alargar niveles e incorporar checkpoints para sostener recorridos mas largos con musica.
 - Ajustar dificultad por grupos de canciones: facil 1-5, medio 6-10, dificil 11-15.
 - Agregar checkpoints visuales antes de zonas con enemigos o saltos opcionales.
 - Mejorar el game feel con coyote time, salto variable y pequenas particulas al caer o tomar mate.
 
 ## Arte y presentacion
 
+- Hecho: agregar pantalla de inicio pixelada y barra visual de progreso del nivel.
+- Hecho: sumar banderas/checkpoints como elementos de presentacion y progreso.
 - Hacer sprites por cuadro en una spritesheet pixel art en vez de dibujarlos solo con rectangulos.
 - Crear animaciones separadas para idle, correr, saltar, tomar mate, recibir golpe y llegar al Obelisco.
 - Mejorar los fondos con mas capas parallax y objetos identificables por cancion.

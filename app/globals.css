@@ -110,6 +110,51 @@ canvas {
   box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.08), 0 10px 0 rgba(0, 0, 0, 0.25);
 }
 
+.canvas-wrap {
+  position: relative;
+}
+
+.start-screen {
+  position: absolute;
+  inset: 5px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+  background:
+    linear-gradient(rgba(8, 9, 14, 0.48), rgba(8, 9, 14, 0.7)),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 6px);
+}
+
+.start-screen span {
+  color: var(--mint);
+  font-size: 18px;
+}
+
+.start-screen h2 {
+  max-width: 760px;
+  color: var(--hot);
+  font-size: clamp(30px, 6vw, 70px);
+  text-transform: uppercase;
+  text-shadow: 5px 5px 0 #090a0e;
+}
+
+.start-screen p {
+  color: #f7f3df;
+  font-size: 18px;
+}
+
+.start-screen button {
+  min-width: 160px;
+  min-height: 48px;
+  border: 3px solid var(--hot);
+  background: var(--panel);
+  color: var(--hot);
+  cursor: pointer;
+  box-shadow: inset -4px -4px 0 rgba(0, 0, 0, 0.32), inset 4px 4px 0 rgba(255, 255, 255, 0.08), 6px 6px 0 #090a0e;
+}
+
 .hud {
   min-height: 68px;
   display: flex;
@@ -122,6 +167,26 @@ canvas {
 .hud p {
   color: #f2f2f2;
   line-height: 1.35;
+}
+
+.hud-status {
+  flex: 1;
+  display: grid;
+  gap: 9px;
+}
+
+.route-progress {
+  height: 10px;
+  border: 2px solid var(--line);
+  background: #090a0e;
+  overflow: hidden;
+}
+
+.route-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--mint), var(--hot));
+  transition: width 140ms linear;
 }
 
 .actions,

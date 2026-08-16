@@ -128,3 +128,12 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - La colision contra muros ahora usa la posicion anterior del jugador, evitando empujes incorrectos al saltar o caer cerca de una pared.
 - Los enemigos ahora chocan con muros solidos y cambian de direccion en vez de traspasarlos.
 - El QA suma pruebas especificas para rendijas de muros y enemigos contra paredes.
+
+### v11
+
+- Se alineo la hitbox de Milo con el sprite visible para evitar que parezca flotando o hundido en plataformas.
+- La fisica ahora resuelve movimiento horizontal y vertical por separado: los muros bloquean laterales y las plataformas sostienen/techo sin enganchar a Milo.
+- Los niveles son mas largos para que haya mas recorrido y se pueda disfrutar mejor cada cancion.
+- Se agregaron checkpoints con bandera argentina repartidos por nivel.
+- Al caer despues de activar un checkpoint, Milo reaparece desde ese punto en vez de volver al inicio o a una plataforma rara.
+- Se agrego pantalla de inicio pixelada, barra de avance del nivel y una presentacion mas cuidada del HUD.

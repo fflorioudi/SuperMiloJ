@@ -8,13 +8,13 @@ import {
   freshPlayer,
   friction,
   gravity,
-  hasSolidFooting,
   height,
   makeWorld,
   moveEnemy,
   readProgress,
   rectsOverlap,
-  resolveSolidCollision,
+  resolveHorizontalCollision,
+  resolveVerticalCollision,
   resizePlayerKeepingFeet,
   snapPlayerToFloor,
   tracks,
@@ -60,6 +60,8 @@ export default function Home() {
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [progress, setProgress] = useState(defaultProgress());
   const [debugMode, setDebugMode] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
+  const [routeProgress, setRouteProgress] = useState(0);
 
   const currentTrack = tracks[level];
   const levelLabel = useMemo(() => `${String(level + 1).padStart(2, "0")} / ${tracks.length}`, [level]);
@@ -84,6 +86,8 @@ export default function Home() {
     setLives(3);
     setWon(false);
     setGameOver(false);
+    setRouteProgress(0);
+    setShowIntro(true);
     setStatus(`Nivel ${levelIndex + 1}: ${tracks[levelIndex].title}`);
   };
 
@@ -135,9 +139,14 @@ export default function Home() {
     const respawnOnSafePlatform = () => {
       const p = player.current;
       const world = worldRef.current;
-      const safe = findSafePlatform(p, world);
-      p.x = Math.max(30, Math.min(safe.x + 28, safe.x + safe.w - p.w - 18));
-      p.y = safe.y - p.h;
+      if (p.checkpointIndex > 0) {
+        p.x = p.spawnX;
+        p.y = p.spawnY;
+      } else {
+        const safe = findSafePlatform(p, world);
+        p.x = Math.max(30, Math.min(safe.x + 28, safe.x + safe.w - p.w - 18));
+        p.y = safe.y - p.h;
+      }
       p.spawnX = p.x;
       p.spawnY = p.y;
       p.vx = 0;
@@ -204,7 +213,8 @@ export default function Home() {
       const right = keys.current.d || keys.current.arrowright;
       const jump = keys.current.w || keys.current.arrowup || keys.current[" "];
 
-      if (!won && !gameOver) {
+      if (!showIntro && !won && !gameOver) {
+        if (tick.current % 12 === 0) setRouteProgress(Math.min(100, Math.max(0, Math.round((p.x / Math.max(1, world.length)) * 100))));
         if (left) p.vx -= 0.42;
         if (right) p.vx += 0.42;
         if (left) p.facing = -1;
@@ -216,20 +226,17 @@ export default function Home() {
         }
 
         const previousX = p.x;
+        p.x += p.vx;
+        for (const obstacle of world.obstacles) resolveHorizontalCollision(p, obstacle, previousX);
+        p.x = Math.max(0, Math.min(world.length, p.x));
+        p.vx *= friction;
+
         const previousY = p.y;
         p.vy += gravity;
-        p.x += p.vx;
         p.y += p.vy;
-        p.vx *= friction;
         p.grounded = false;
-
-        for (const platform of world.platforms) {
-          if (rectsOverlap(p, platform) && hasSolidFooting(p, platform) && p.vy >= 0 && previousY + p.h <= platform.y + 4) {
-            p.y = platform.y - p.h;
-            p.vy = 0;
-            p.grounded = true;
-          }
-        }
+        const solids = [...world.platforms, ...world.obstacles];
+        for (const solid of solids) resolveVerticalCollision(p, solid, previousY, 12);
 
         for (const block of world.blocks) {
           const blockRect = { x: block.x, y: block.y + block.bump, w: 34, h: 34 };
@@ -262,14 +269,18 @@ export default function Home() {
           }
         }
 
-        for (const obstacle of world.obstacles) {
-          resolveSolidCollision(p, obstacle, previousX, previousY);
-        }
-
-        p.x = Math.max(0, Math.min(world.length, p.x));
         if (p.y > height + 80) hurtPlayer();
         if (p.invincible > 0) p.invincible -= 1;
         if (p.powered > 0) p.powered -= 1;
+
+        for (const checkpoint of world.checkpoints) {
+          if (checkpoint.active || p.x + p.w < checkpoint.x || p.x > checkpoint.x + checkpoint.w || p.y + p.h < checkpoint.y) continue;
+          checkpoint.active = true;
+          p.checkpointIndex += 1;
+          p.spawnX = checkpoint.x + 12;
+          p.spawnY = 468 - p.h;
+          setStatus(`Checkpoint ${p.checkpointIndex}: si caes, volves aca.`);
+        }
 
         for (const note of world.notes) {
           if (!note.collected && rectsOverlap(p, { x: note.x - 10, y: note.y - 10, w: 20, h: 20 })) {
@@ -295,7 +306,7 @@ export default function Home() {
             p.powered = 700;
             p.transformed = true;
             p.invincible = Math.max(p.invincible, 100);
-            resizePlayerKeepingFeet(p, 36, 52);
+            resizePlayerKeepingFeet(p, 38, 64);
             snapPlayerToFloor(p, worldRef.current);
             setScore((value) => value + 75);
             setLives((value) => Math.min(5, value + 1));
@@ -304,8 +315,8 @@ export default function Home() {
         }
 
         if (p.powered <= 0) {
-          if (p.w !== 32 || p.h !== 46) {
-            resizePlayerKeepingFeet(p, 32, 46);
+          if (p.w !== 32 || p.h !== 62) {
+            resizePlayerKeepingFeet(p, 32, 62);
             snapPlayerToFloor(p, worldRef.current);
           }
         }
@@ -349,13 +360,14 @@ export default function Home() {
       for (const mate of world.mates) if (!mate.collected) drawMate(context, mate.x - cam, mate.y);
       for (const enemy of world.enemies) if (enemy.x > -1000) drawEnemy(context, enemy.x - cam, enemy.y, enemy.w, enemy.h, track.enemy, enemy.kind, enemy.pattern);
       for (const obstacle of world.obstacles) drawObstacle(context, obstacle.x - cam, obstacle.y, obstacle.w, obstacle.h, track.ground, track.accent);
+      for (const checkpoint of world.checkpoints) drawCheckpoint(context, checkpoint.x - cam, checkpoint.y, checkpoint.active, track.accent);
 
       drawObeliscoGoal(context, world.length - cam - 82, 330, track.accent);
       drawMilo(context, p.x - cam, p.y, p.invincible, p.powered, p.transformed, p.facing, track.accent);
       if (debugMode) drawDebug(context, world, p, cam);
       drawPixelText(context, track.title, 24, 18, 20, "#fff");
       drawPixelText(context, track.theme, 24, 44, 13, "rgba(255,255,255,0.82)");
-      drawPixelText(context, `Notas ${score}  Vidas ${lives}  Mate ${p.powered > 0 ? "PODER" : p.transformed ? "LOOK" : "RARO"}`, 520, 18, 14, "#fff");
+      drawPixelText(context, `Notas ${score}  Vidas ${lives}  CP ${p.checkpointIndex}/${world.checkpoints.length}  Mate ${p.powered > 0 ? "PODER" : p.transformed ? "LOOK" : "RARO"}`, 430, 18, 14, "#fff");
 
       if (won) {
         context.fillStyle = "rgba(10,12,20,0.76)";
@@ -384,6 +396,8 @@ export default function Home() {
       for (const enemy of world.enemies) if (enemy.x > -1000) context.strokeRect(enemy.x - cam, enemy.y, enemy.w, enemy.h);
       context.strokeStyle = "#ff7a2f";
       for (const obstacle of world.obstacles) context.strokeRect(obstacle.x - cam, obstacle.y, obstacle.w, obstacle.h);
+      context.strokeStyle = "#73f0bd";
+      for (const checkpoint of world.checkpoints) context.strokeRect(checkpoint.x - cam, checkpoint.y, checkpoint.w, checkpoint.h);
       context.fillStyle = "rgba(0,0,0,0.62)";
       context.fillRect(20, 72, 310, 76);
       drawPixelText(context, `x ${Math.round(p.x)} y ${Math.round(p.y)} vx ${p.vx.toFixed(2)} vy ${p.vy.toFixed(2)}`, 32, 84, 12, "#fff");
@@ -588,6 +602,21 @@ export default function Home() {
       }
     };
 
+    const drawCheckpoint = (context: CanvasRenderingContext2D, x: number, y: number, active: boolean, accent: string) => {
+      context.fillStyle = "rgba(0,0,0,0.22)";
+      context.fillRect(x - 8, y + 54, 46, 6);
+      context.fillStyle = active ? "#73f0bd" : "#e9e2d0";
+      context.fillRect(x + 10, y + 4, 5, 54);
+      context.fillStyle = active ? accent : "#74c0fc";
+      context.fillRect(x + 15, y + 6, 28, 10);
+      context.fillStyle = "#fff";
+      context.fillRect(x + 15, y + 16, 28, 10);
+      context.fillStyle = active ? accent : "#74c0fc";
+      context.fillRect(x + 15, y + 26, 28, 10);
+      context.fillStyle = "#ffd43b";
+      context.fillRect(x + 25, y + 18, 7, 6);
+    };
+
     const drawQuestionBlock = (context: CanvasRenderingContext2D, x: number, y: number, hit: boolean, hasMate: boolean, accent: string) => {
       context.fillStyle = hit ? "#7a6b58" : hasMate ? "#b56d28" : "#9f7445";
       context.fillRect(x, y, 34, 34);
@@ -774,7 +803,7 @@ export default function Home() {
     return () => {
       if (loop.current) cancelAnimationFrame(loop.current);
     };
-  }, [level, lives, score, unlocked, won, gameOver, debugMode]);
+  }, [level, lives, score, unlocked, won, gameOver, debugMode, showIntro]);
 
   const press = (key: string, value: boolean) => {
     keys.current[key] = value;
@@ -816,7 +845,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Milo J Pixel Run v5</span>
+            <span className="kicker">Milo J Pixel Run v11</span>
             <h1>La Vida Era Mas Corta</h1>
           </div>
           <div className="level-readout">
@@ -825,10 +854,27 @@ export default function Home() {
           </div>
         </div>
 
-        <canvas ref={canvasRef} width={width} height={height} aria-label="Escenario del juego" />
+        <div className="canvas-wrap">
+          <canvas ref={canvasRef} width={width} height={height} aria-label="Escenario del juego" />
+          {showIntro && (
+            <div className="start-screen">
+              <span>{levelLabel}</span>
+              <h2>{currentTrack.title}</h2>
+              <p>{currentTrack.theme}</p>
+              <button type="button" onClick={() => setShowIntro(false)}>
+                Jugar
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="hud">
-          <p>{status}</p>
+          <div className="hud-status">
+            <p>{status}</p>
+            <div className="route-progress" aria-label="Progreso del nivel">
+              <span style={{ width: `${routeProgress}%` }} />
+            </div>
+          </div>
           <div className="actions">
             <button type="button" onClick={() => setLevel((value) => Math.max(0, value - 1))} disabled={level === 0}>
               Anterior

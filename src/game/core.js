@@ -24,7 +24,7 @@ export const tracks = [
 ];
 
 export function freshPlayer() {
-  return { x: 60, y: 360, spawnX: 60, spawnY: 360, vx: 0, vy: 0, w: 32, h: 46, grounded: false, invincible: 0, powered: 0, transformed: false, facing: 1 };
+  return { x: 60, y: 360, spawnX: 60, spawnY: 360, checkpointIndex: 0, vx: 0, vy: 0, w: 32, h: 62, grounded: false, invincible: 0, powered: 0, transformed: false, facing: 1 };
 }
 
 export function makeEnemy(x, y, level, seed) {
@@ -48,14 +48,15 @@ export function makeEnemy(x, y, level, seed) {
 
 export function makeWorld(level) {
   const difficulty = level / (tracks.length - 1);
-  const length = 2450 + level * 185;
+  const length = 3350 + level * 245;
   const platforms = [];
   const notes = [];
   const blocks = [];
   const mates = [];
   const enemies = [];
   const obstacles = [];
-  const platformCount = 7 + Math.floor(level * 0.62);
+  const checkpoints = [];
+  const platformCount = 10 + Math.floor(level * 0.82);
   const mateBlockIndexes = new Set(level < 6 ? [3] : level < 11 ? [4] : [3, 9]);
   const groundChunk = length + 360;
 
@@ -81,13 +82,20 @@ export function makeWorld(level) {
     }
   }
 
+  const checkpointCount = 2 + Math.floor(level / 7);
+  for (let i = 1; i <= checkpointCount; i += 1) {
+    const x = Math.floor((length / (checkpointCount + 1)) * i);
+    checkpoints.push({ x, y: 412, w: 28, h: 56, active: false });
+    notes.push({ x: x + 48, y: 392, collected: false });
+  }
+
   for (let i = 0; i < 8 + Math.floor(level / 3); i += 1) {
     notes.push({ x: 170 + i * (230 - Math.floor(difficulty * 28)), y: 420 - ((i * 37 + level * 19) % 105), collected: false });
   }
 
   enemies.push(makeEnemy(length - 360, 436, level, 99));
   platforms.push({ x: length - 260, y: 412 - Math.floor(difficulty * 52), w: 130 - Math.floor(difficulty * 22), h: 20 });
-  return { platforms, notes, blocks, mates, enemies, obstacles, length };
+  return { platforms, notes, blocks, mates, enemies, obstacles, checkpoints, length };
 }
 
 export function rectsOverlap(a, b) {
@@ -100,6 +108,68 @@ export function horizontalOverlap(a, b) {
 
 export function hasSolidFooting(entity, platform, minOverlap = 10) {
   return horizontalOverlap(entity, platform) >= minOverlap;
+}
+
+export function resolveHorizontalCollision(entity, solid, previousX) {
+  if (!rectsOverlap(entity, solid)) return null;
+  const previousRight = previousX + entity.w;
+  const solidRight = solid.x + solid.w;
+
+  if (previousRight <= solid.x + 2) {
+    entity.x = solid.x - entity.w;
+    entity.vx = Math.min(0, entity.vx);
+    return "left";
+  }
+
+  if (previousX >= solidRight - 2) {
+    entity.x = solidRight;
+    entity.vx = Math.max(0, entity.vx);
+    return "right";
+  }
+
+  const pushLeft = entity.x + entity.w - solid.x;
+  const pushRight = solidRight - entity.x;
+  if (pushLeft < pushRight) {
+    entity.x = solid.x - entity.w;
+    entity.vx = Math.min(0, entity.vx);
+    return "left";
+  }
+
+  entity.x = solidRight;
+  entity.vx = Math.max(0, entity.vx);
+  return "right";
+}
+
+export function resolveVerticalCollision(entity, solid, previousY, minFooting = 0) {
+  if (!rectsOverlap(entity, solid) || horizontalOverlap(entity, solid) < minFooting) return null;
+  const previousBottom = previousY + entity.h;
+  const solidBottom = solid.y + solid.h;
+
+  if (previousBottom <= solid.y + 4 && entity.vy >= 0) {
+    entity.y = solid.y - entity.h;
+    entity.vy = 0;
+    entity.grounded = true;
+    return "top";
+  }
+
+  if (previousY >= solidBottom - 4 && entity.vy < 0) {
+    entity.y = solidBottom;
+    entity.vy = Math.max(0, entity.vy);
+    return "bottom";
+  }
+
+  const pushUp = entity.y + entity.h - solid.y;
+  const pushDown = solidBottom - entity.y;
+  if (pushUp < pushDown) {
+    entity.y = solid.y - entity.h;
+    entity.vy = 0;
+    entity.grounded = true;
+    return "top";
+  }
+
+  entity.y = solidBottom;
+  entity.vy = Math.max(0, entity.vy);
+  return "bottom";
 }
 
 export function resolveSolidCollision(entity, solid, previousX, previousY) {
@@ -180,7 +250,7 @@ export function moveEnemy(enemy, obstacles = []) {
   if (enemy.x < enemy.min || enemy.x > enemy.max) enemy.vx *= -1;
   for (const obstacle of obstacles) {
     const speed = Math.abs(enemy.vx);
-    const hitSide = resolveSolidCollision(enemy, obstacle, previousX, previousY);
+    const hitSide = resolveHorizontalCollision(enemy, obstacle, previousX);
     if (!hitSide) continue;
     if (hitSide === "left") enemy.vx = -speed;
     if (hitSide === "right") enemy.vx = speed;

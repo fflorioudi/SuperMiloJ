@@ -13,6 +13,7 @@ Fecha: 2026-08-16
 - Se valida que desde niveles medios existan obstaculos obligatorios que fuerzan rutas por plataformas.
 - La simulacion automatica ahora salta ante plataformas y obstaculos.
 - Se agregaron pruebas puntuales para rendijas entre muros/plataformas y enemigos chocando contra paredes.
+- Se valida que cada nivel tenga checkpoints y que la ruta extendida siga siendo completable.
 
 ## Resultado
 
@@ -21,14 +22,15 @@ Fecha: 2026-08-16
 - Audios detectados: 15/15.
 - Caidas durante la ruta base: 0.
 - Entidades fuera de rango: 0.
-- Core tests exitosos: 8/8.
+- Core tests exitosos: 9/9.
 
 ## Observaciones
 
 - Desde niveles medios, la ruta exige saltar y usar plataformas en zonas bloqueadas por muros.
 - Las plataformas flotantes combinan ruta obligatoria, notas, bloques y mates segun el nivel.
-- Las hitbox ahora exigen apoyo real bajo los pies para evitar sostenerse con un borde minimo.
+- Las hitbox visuales y fisicas de Milo quedaron alineadas para evitar falsa sensacion de flotar o atravesar piso.
 - Los enemigos rebotan contra muros solidos en vez de atravesarlos.
+- Los niveles son mas largos e incorporan checkpoints para sostener mejor sesiones con musica.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba
