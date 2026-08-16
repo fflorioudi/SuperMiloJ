@@ -12,6 +12,7 @@ Fecha: 2026-08-16
 - Se agregaron pruebas puntuales para resize de power-up, snap a plataforma, respawn, movimiento enemigo y colisiones rectangulares.
 - Se valida que desde niveles medios existan obstaculos obligatorios que fuerzan rutas por plataformas.
 - La simulacion automatica ahora salta ante plataformas y obstaculos.
+- Se agregaron pruebas puntuales para rendijas entre muros/plataformas y enemigos chocando contra paredes.
 
 ## Resultado
 
@@ -20,12 +21,14 @@ Fecha: 2026-08-16
 - Audios detectados: 15/15.
 - Caidas durante la ruta base: 0.
 - Entidades fuera de rango: 0.
-- Core tests exitosos: 6/6.
+- Core tests exitosos: 8/8.
 
 ## Observaciones
 
-- La ruta base de cada nivel es completable caminando hacia la meta.
-- Las plataformas flotantes quedan como rutas opcionales para notas, bloques y mates.
+- Desde niveles medios, la ruta exige saltar y usar plataformas en zonas bloqueadas por muros.
+- Las plataformas flotantes combinan ruta obligatoria, notas, bloques y mates segun el nivel.
+- Las hitbox ahora exigen apoyo real bajo los pies para evitar sostenerse con un borde minimo.
+- Los enemigos rebotan contra muros solidos en vez de atravesarlos.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba

@@ -76,7 +76,8 @@ export function makeWorld(level) {
     if ((i + level) % 3 !== 1) blocks.push({ x: x + Math.min(34, w - 44), y: y - 96, hit: false, bump: 0, hasMate: mateBlockIndexes.has(i) });
 
     if (level >= 4 && i > 0 && i % 3 === 1) {
-      obstacles.push({ x: x - 36, y: 384 - Math.floor(difficulty * 18), w: 34, h: 84 + Math.floor(difficulty * 18), kind: "wall" });
+      const wallY = Math.max(376, Math.min(386, y + 6));
+      obstacles.push({ x: x - 44, y: wallY, w: 52, h: 468 - wallY, kind: "wall" });
     }
   }
 
@@ -93,15 +94,98 @@ export function rectsOverlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
-export function moveEnemy(enemy) {
+export function horizontalOverlap(a, b) {
+  return Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+}
+
+export function hasSolidFooting(entity, platform, minOverlap = 10) {
+  return horizontalOverlap(entity, platform) >= minOverlap;
+}
+
+export function resolveSolidCollision(entity, solid, previousX, previousY) {
+  if (!rectsOverlap(entity, solid)) return null;
+
+  const prevLeft = previousX;
+  const prevRight = previousX + entity.w;
+  const prevTop = previousY;
+  const prevBottom = previousY + entity.h;
+  const solidRight = solid.x + solid.w;
+  const solidBottom = solid.y + solid.h;
+
+  if (prevBottom <= solid.y + 4 && entity.vy >= 0) {
+    entity.y = solid.y - entity.h;
+    entity.vy = 0;
+    entity.grounded = true;
+    return "top";
+  }
+
+  if (prevTop >= solidBottom - 4 && entity.vy < 0) {
+    entity.y = solidBottom;
+    entity.vy = Math.max(0, entity.vy);
+    return "bottom";
+  }
+
+  if (prevRight <= solid.x + 4) {
+    entity.x = solid.x - entity.w;
+    entity.vx = Math.min(0, entity.vx);
+    return "left";
+  }
+
+  if (prevLeft >= solidRight - 4) {
+    entity.x = solidRight;
+    entity.vx = Math.max(0, entity.vx);
+    return "right";
+  }
+
+  const pushLeft = entity.x + entity.w - solid.x;
+  const pushRight = solidRight - entity.x;
+  const pushUp = entity.y + entity.h - solid.y;
+  const pushDown = solidBottom - entity.y;
+  const smallestPush = Math.min(pushLeft, pushRight, pushUp, pushDown);
+
+  if (smallestPush === pushUp && entity.vy >= 0) {
+    entity.y = solid.y - entity.h;
+    entity.vy = 0;
+    entity.grounded = true;
+    return "top";
+  }
+
+  if (smallestPush === pushDown && entity.vy < 0) {
+    entity.y = solidBottom;
+    entity.vy = Math.max(0, entity.vy);
+    return "bottom";
+  }
+
+  if (smallestPush === pushLeft) {
+    entity.x = solid.x - entity.w;
+    entity.vx = Math.min(0, entity.vx);
+    return "left";
+  }
+
+  entity.x = solidRight;
+  entity.vx = Math.max(0, entity.vx);
+  return "right";
+}
+
+export function moveEnemy(enemy, obstacles = []) {
   if (enemy.x < -1000) return;
+  const previousX = enemy.x;
+  const previousY = enemy.y;
   enemy.phase += 1;
   const chargeBoost = enemy.pattern === "charge" && Math.floor(enemy.phase / 95) % 2 === 1 ? 1.9 : 1;
   enemy.x += enemy.vx * chargeBoost;
-  if (enemy.x < enemy.min || enemy.x > enemy.max) enemy.vx *= -1;
   if (enemy.pattern === "hop") enemy.y = enemy.baseY - Math.max(0, Math.sin(enemy.phase / 18)) * 28;
   if (enemy.pattern === "sine") enemy.y = enemy.baseY + Math.sin(enemy.phase / 22) * 34;
   if (enemy.pattern === "walk" || enemy.pattern === "charge") enemy.y = enemy.baseY;
+  if (enemy.x < enemy.min || enemy.x > enemy.max) enemy.vx *= -1;
+  for (const obstacle of obstacles) {
+    const speed = Math.abs(enemy.vx);
+    const hitSide = resolveSolidCollision(enemy, obstacle, previousX, previousY);
+    if (!hitSide) continue;
+    if (hitSide === "left") enemy.vx = -speed;
+    if (hitSide === "right") enemy.vx = speed;
+    break;
+  }
 }
 
 export function resizePlayerKeepingFeet(player, nextW, nextH) {

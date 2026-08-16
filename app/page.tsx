@@ -8,11 +8,13 @@ import {
   freshPlayer,
   friction,
   gravity,
+  hasSolidFooting,
   height,
   makeWorld,
   moveEnemy,
   readProgress,
   rectsOverlap,
+  resolveSolidCollision,
   resizePlayerKeepingFeet,
   snapPlayerToFloor,
   tracks,
@@ -213,6 +215,8 @@ export default function Home() {
           p.grounded = false;
         }
 
+        const previousX = p.x;
+        const previousY = p.y;
         p.vy += gravity;
         p.x += p.vx;
         p.y += p.vy;
@@ -220,7 +224,7 @@ export default function Home() {
         p.grounded = false;
 
         for (const platform of world.platforms) {
-          if (rectsOverlap(p, platform) && p.vy >= 0 && p.y + p.h - p.vy <= platform.y + 4) {
+          if (rectsOverlap(p, platform) && hasSolidFooting(p, platform) && p.vy >= 0 && previousY + p.h <= platform.y + 4) {
             p.y = platform.y - p.h;
             p.vy = 0;
             p.grounded = true;
@@ -259,18 +263,7 @@ export default function Home() {
         }
 
         for (const obstacle of world.obstacles) {
-          if (!rectsOverlap(p, obstacle)) continue;
-          if (p.vy >= 0 && p.y + p.h - p.vy <= obstacle.y + 5) {
-            p.y = obstacle.y - p.h;
-            p.vy = 0;
-            p.grounded = true;
-          } else if (p.x + p.w / 2 < obstacle.x + obstacle.w / 2) {
-            p.x = obstacle.x - p.w;
-            p.vx = Math.min(0, p.vx);
-          } else {
-            p.x = obstacle.x + obstacle.w;
-            p.vx = Math.max(0, p.vx);
-          }
+          resolveSolidCollision(p, obstacle, previousX, previousY);
         }
 
         p.x = Math.max(0, Math.min(world.length, p.x));
@@ -318,7 +311,7 @@ export default function Home() {
         }
 
         for (const enemy of world.enemies) {
-          moveEnemy(enemy);
+          moveEnemy(enemy, world.obstacles);
           if (rectsOverlap(p, enemy)) {
             if (p.vy > 2 && p.y + p.h < enemy.y + 18) {
               p.vy = -8.2;

@@ -4,10 +4,12 @@ import {
   freshPlayer,
   friction,
   gravity,
+  hasSolidFooting,
   height,
   makeWorld,
   moveEnemy,
   rectsOverlap,
+  resolveSolidCollision,
   resizePlayerKeepingFeet,
   snapPlayerToFloor,
   tracks,
@@ -33,6 +35,8 @@ function runPlayerRoute(world) {
 
     player.vx += 0.42;
     player.vx = Math.max(-4.35, Math.min(4.35, player.vx));
+    const previousX = player.x;
+    const previousY = player.y;
     player.vy += gravity;
     player.x += player.vx;
     player.y += player.vy;
@@ -40,7 +44,7 @@ function runPlayerRoute(world) {
     player.grounded = false;
 
     for (const platform of world.platforms) {
-      if (rectsOverlap(player, platform) && player.vy >= 0 && player.y + player.h - player.vy <= platform.y + 4) {
+      if (rectsOverlap(player, platform) && hasSolidFooting(player, platform) && player.vy >= 0 && previousY + player.h <= platform.y + 4) {
         player.y = platform.y - player.h;
         player.vy = 0;
         player.grounded = true;
@@ -48,18 +52,7 @@ function runPlayerRoute(world) {
     }
 
     for (const obstacle of world.obstacles) {
-      if (!rectsOverlap(player, obstacle)) continue;
-      if (player.vy >= 0 && player.y + player.h - player.vy <= obstacle.y + 5) {
-        player.y = obstacle.y - player.h;
-        player.vy = 0;
-        player.grounded = true;
-      } else if (player.x + player.w / 2 < obstacle.x + obstacle.w / 2) {
-        player.x = obstacle.x - player.w;
-        player.vx = Math.min(0, player.vx);
-      } else {
-        player.x = obstacle.x + obstacle.w;
-        player.vx = Math.max(0, player.vx);
-      }
+      resolveSolidCollision(player, obstacle, previousX, previousY);
     }
 
     if (player.y > height + 80) {
@@ -113,6 +106,24 @@ function assertCore(name, condition, details = "") {
 }
 
 {
+  const world = makeWorld(4);
+  const obstacle = world.obstacles[0];
+  const player = { ...freshPlayer(), x: obstacle.x - 20, y: obstacle.y + 12, vx: 5, vy: 0, grounded: false };
+  const previousX = player.x;
+  const previousY = player.y;
+  player.x += player.vx;
+  resolveSolidCollision(player, obstacle, previousX, previousY);
+  assertCore("player wall collider blocks side gaps", player.x + player.w <= obstacle.x && player.vx <= 0);
+}
+
+{
+  const obstacle = { x: 160, y: 360, w: 52, h: 108 };
+  const enemy = { x: 132, y: 432, baseY: 432, vx: 4, min: 80, max: 260, w: 30, h: 30, pattern: "walk", phase: 0 };
+  moveEnemy(enemy, [obstacle]);
+  assertCore("enemy reverses at solid walls", enemy.x + enemy.w <= obstacle.x && enemy.vx < 0);
+}
+
+{
   assertCore("rect collision detects overlap", rectsOverlap({ x: 0, y: 0, w: 20, h: 20 }, { x: 10, y: 10, w: 20, h: 20 }));
   assertCore("rect collision rejects separated boxes", !rectsOverlap({ x: 0, y: 0, w: 20, h: 20 }, { x: 40, y: 40, w: 20, h: 20 }));
 }
@@ -128,7 +139,7 @@ for (let level = 0; level < tracks.length; level += 1) {
   if (world.notes.some((note) => note.y < 40 || note.y > 460)) issues.push("note outside safe vertical range");
   if (world.enemies.some((enemy) => enemy.y < 120 || enemy.y > 440 || enemy.min < 0 || enemy.max > world.length + 120)) issues.push("enemy outside expected patrol bounds");
   if (level >= 4 && world.obstacles.length === 0) issues.push("expected mandatory platform obstacles");
-  if (world.obstacles.some((obstacle) => obstacle.y < 300 || obstacle.y + obstacle.h > 500)) issues.push("obstacle outside safe vertical range");
+  if (world.obstacles.some((obstacle) => obstacle.y < 300 || obstacle.y + obstacle.h !== 468 || obstacle.w < 48)) issues.push("obstacle collider does not seal platform route");
 
   const runs = Array.from({ length: 10 }, () => runPlayerRoute(world));
   const failedRuns = runs.filter((run) => !run.finished || run.falls > 0);

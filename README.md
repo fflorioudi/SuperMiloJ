@@ -121,3 +121,10 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - La ruta base ya no es solo caminar en niveles mas avanzados, pero se mantiene testeada para evitar saltos imposibles.
 - El QA ahora simula saltos ante plataformas y obstaculos obligatorios.
 - Milo se reajusta a la plataforma cercana despues de cambiar de tamaño, evitando caidas raras por el hitbox.
+### v10
+
+- Se reforzaron las hitbox de plataformas: Milo necesita apoyo real bajo los pies y ya no puede sostenerse con un borde minimo.
+- Se reforzaron los muros obligatorios para que lleguen al suelo y se solapen con la ruta de plataformas, cerrando rendijas raras.
+- La colision contra muros ahora usa la posicion anterior del jugador, evitando empujes incorrectos al saltar o caer cerca de una pared.
+- Los enemigos ahora chocan con muros solidos y cambian de direccion en vez de traspasarlos.
+- El QA suma pruebas especificas para rendijas de muros y enemigos contra paredes.
