@@ -1,0 +1,124 @@
+import { existsSync } from "node:fs";
+import {
+  findSafePlatform,
+  freshPlayer,
+  friction,
+  gravity,
+  height,
+  makeWorld,
+  moveEnemy,
+  rectsOverlap,
+  resizePlayerKeepingFeet,
+  snapPlayerToFloor,
+  tracks,
+} from "../src/game/core.js";
+
+function audioExists(audio) {
+  const candidates = [`public/audio/${audio}`, `public/audio/${audio}.mp3`];
+  return candidates.some((candidate) => existsSync(candidate));
+}
+
+function runPlayerRoute(world) {
+  const player = { x: 60, y: 360, vx: 0, vy: 0, w: 32, h: 46, grounded: false };
+  let falls = 0;
+  let finished = false;
+
+  for (let frame = 0; frame < 4000; frame += 1) {
+    player.vx += 0.42;
+    player.vx = Math.max(-4.35, Math.min(4.35, player.vx));
+    player.vy += gravity;
+    player.x += player.vx;
+    player.y += player.vy;
+    player.vx *= friction;
+    player.grounded = false;
+
+    for (const platform of world.platforms) {
+      if (rectsOverlap(player, platform) && player.vy >= 0 && player.y + player.h - player.vy <= platform.y + 4) {
+        player.y = platform.y - player.h;
+        player.vy = 0;
+        player.grounded = true;
+      }
+    }
+
+    if (player.y > height + 80) {
+      falls += 1;
+      player.x = Math.max(30, player.x - 120);
+      player.y = 360;
+      player.vx = 0;
+      player.vy = 0;
+    }
+
+    if (player.x > world.length - 64) {
+      finished = true;
+      break;
+    }
+  }
+
+  return { finished, falls, finalX: Math.round(player.x) };
+}
+
+const report = [];
+let failures = 0;
+const coreTests = [];
+
+function assertCore(name, condition, details = "") {
+  coreTests.push({ name, passed: Boolean(condition), details });
+  if (!condition) failures += 1;
+}
+
+{
+  const world = makeWorld(0);
+  const player = { ...freshPlayer(), x: 90, y: 420 };
+  const beforeFeet = player.y + player.h;
+  resizePlayerKeepingFeet(player, 36, 52);
+  assertCore("power-up resize keeps feet anchored", player.y + player.h === beforeFeet);
+  snapPlayerToFloor(player, world);
+  assertCore("snapPlayerToFloor lands on ground", player.y + player.h === 468);
+}
+
+{
+  const world = makeWorld(4);
+  const player = { ...freshPlayer(), x: 700, y: 700 };
+  const safe = findSafePlatform(player, world);
+  assertCore("respawn finds previous safe platform", safe && safe.x <= player.x + 12 && safe.w >= 64);
+}
+
+{
+  const enemy = makeWorld(12).enemies.find((candidate) => candidate.pattern === "charge") ?? makeWorld(12).enemies[0];
+  const startX = enemy.x;
+  moveEnemy(enemy);
+  assertCore("enemy movement updates position", enemy.x !== startX || enemy.vx === 0);
+}
+
+{
+  assertCore("rect collision detects overlap", rectsOverlap({ x: 0, y: 0, w: 20, h: 20 }, { x: 10, y: 10, w: 20, h: 20 }));
+  assertCore("rect collision rejects separated boxes", !rectsOverlap({ x: 0, y: 0, w: 20, h: 20 }, { x: 40, y: 40, w: 20, h: 20 }));
+}
+
+for (let level = 0; level < tracks.length; level += 1) {
+  const world = makeWorld(level);
+  const ground = world.platforms.find((platform) => platform.x === 0 && platform.y === 468);
+  const issues = [];
+
+  if (!ground || ground.w < world.length) issues.push("ground does not cover full route");
+  if (!audioExists(tracks[level].audio)) issues.push("audio missing");
+  if (world.blocks.some((block) => block.y < 80 || block.y > 430)) issues.push("block outside safe vertical range");
+  if (world.notes.some((note) => note.y < 40 || note.y > 460)) issues.push("note outside safe vertical range");
+  if (world.enemies.some((enemy) => enemy.y < 120 || enemy.y > 440 || enemy.min < 0 || enemy.max > world.length + 120)) issues.push("enemy outside expected patrol bounds");
+
+  const runs = Array.from({ length: 10 }, () => runPlayerRoute(world));
+  const failedRuns = runs.filter((run) => !run.finished || run.falls > 0);
+  if (failedRuns.length > 0) issues.push(`${failedRuns.length}/10 route simulations failed or fell`);
+
+  if (issues.length > 0) failures += 1;
+  report.push({
+    level: level + 1,
+    title: tracks[level].title,
+    runs: runs.length,
+    passedRuns: runs.length - failedRuns.length,
+    audio: audioExists(tracks[level].audio) ? "ok" : "missing",
+    issues,
+  });
+}
+
+console.log(JSON.stringify({ totalLevels: tracks.length, totalRuns: tracks.length * 10, failingLevels: failures, coreTests, report }, null, 2));

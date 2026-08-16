@@ -103,4 +103,13 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 ### v7
 
 - Se corrigio un bug al tomar mate sobre el piso: la transformacion ahora conserva la posicion de los pies.
+- Milo se reajusta a la plataforma cercana despues de cambiar de tamano, evitando caidas raras por el hitbox.
+
+### v8
+
+- Se separo el nucleo del juego en `src/game/core.js` para compartir mundo, fisica base, player, enemigos, audio y progreso.
+- La app y el QA ahora usan la misma logica base, evitando pruebas duplicadas contra una copia vieja.
+- Se agrego modo debug con hitboxes, posicion del jugador, entidades y estado del power-up.
+- Se guarda progreso ampliado: niveles desbloqueados, mejores puntajes, notas recolectadas y musica activada.
+- Se reforzo `npm run qa` con pruebas de colision, respawn, power-up, enemigos y 150 corridas de ruta.
 - Milo se reajusta a la plataforma cercana despues de cambiar de tamaño, evitando caidas raras por el hitbox.

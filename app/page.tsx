@@ -1,158 +1,35 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  audioCandidates,
+  defaultProgress,
+  findSafePlatform,
+  freshPlayer,
+  friction,
+  gravity,
+  height,
+  makeWorld,
+  moveEnemy,
+  readProgress,
+  rectsOverlap,
+  resizePlayerKeepingFeet,
+  snapPlayerToFloor,
+  tracks,
+  width,
+  writeProgress,
+} from "../src/game/core";
 
-type Track = {
-  title: string;
-  theme: string;
-  sky: string;
-  ground: string;
-  accent: string;
-  enemy: string;
-  audio: string;
-};
-
-type Player = {
-  x: number;
-  y: number;
-  spawnX: number;
-  spawnY: number;
-  vx: number;
-  vy: number;
-  w: number;
-  h: number;
-  grounded: boolean;
-  invincible: number;
-  powered: number;
-  transformed: boolean;
-  facing: 1 | -1;
-};
-
-type Platform = { x: number; y: number; w: number; h: number };
-type Note = { x: number; y: number; collected: boolean };
-type Block = { x: number; y: number; hit: boolean; bump: number; hasMate: boolean };
-type Mate = { x: number; y: number; vx: number; vy: number; collected: boolean };
-type Enemy = {
-  x: number;
-  y: number;
-  baseY: number;
-  vx: number;
-  min: number;
-  max: number;
-  w: number;
-  h: number;
-  kind: number;
-  pattern: "walk" | "hop" | "sine" | "charge";
-  phase: number;
-};
-type World = { platforms: Platform[]; notes: Note[]; blocks: Block[]; mates: Mate[]; enemies: Enemy[]; length: number };
-
-const tracks: Track[] = [
-  { title: "Bajo De La Piel", theme: "Capas bajo la piel", sky: "#3b245d", ground: "#6f4a7f", accent: "#f6c45f", enemy: "#2ee6a6", audio: "01-bajo-de-la-piel.mp3" },
-  { title: "Nino", theme: "Patio de infancia", sky: "#82c8cf", ground: "#5d7f42", accent: "#f7da73", enemy: "#d94848", audio: "02-nino.mp3" },
-  { title: "Gil", theme: "Ciudad filosa", sky: "#202938", ground: "#596073", accent: "#e34f5f", enemy: "#f0b35a", audio: "03-gil.mp3" },
-  { title: "Ama De Mi Sol", theme: "Atardecer dorado", sky: "#f2a65a", ground: "#7a5c3e", accent: "#fff3a5", enemy: "#5b5fc7", audio: "04-ama-de-mi-sol.mp3" },
-  { title: "Solifican12", theme: "Ruta solar", sky: "#f7c65b", ground: "#a25f3b", accent: "#45b7ff", enemy: "#47344f", audio: "05-solifican12.mp3" },
-  { title: "Lucia", theme: "Noche folklorica", sky: "#23395b", ground: "#76583f", accent: "#ffcf8a", enemy: "#80e1ff", audio: "06-lucia.mp3" },
-  { title: "MmmM", theme: "Estudio raro", sky: "#5d4a66", ground: "#3e3a44", accent: "#ff8fc7", enemy: "#d6f264", audio: "07-mmmm.mp3" },
-  { title: "Llora Llora", theme: "Lluvia neon", sky: "#153a4c", ground: "#2c6268", accent: "#9ef7ff", enemy: "#ff7a97", audio: "08-llora-llora.mp3" },
-  { title: "Recorde", theme: "Album de recuerdos", sky: "#684c3c", ground: "#395b50", accent: "#e9d8a6", enemy: "#c65f5f", audio: "09-recorde.mp3" },
-  { title: "Cuando El Agua Hirviendo", theme: "Cocina volcan", sky: "#5a1d22", ground: "#6a4834", accent: "#ffdf6f", enemy: "#ff6b2f", audio: "10-cuando-el-agua-hirviendo.mp3" },
-  { title: "La Vida Era Mas Corta", theme: "Reloj partido", sky: "#2b2d42", ground: "#8d6b94", accent: "#edf2f4", enemy: "#ef476f", audio: "11-la-vida-era-mas-corta.mp3" },
-  { title: "Radamel", theme: "Cancha de barrio", sky: "#14784f", ground: "#335c37", accent: "#ffffff", enemy: "#1b2a41", audio: "12-radamel.mp3" },
-  { title: "El Invisible", theme: "Monte espectral", sky: "#253126", ground: "#656d4a", accent: "#caffbf", enemy: "#d8f3dc", audio: "13-el-invisible.mp3" },
-  { title: "Luciernagas", theme: "Bosque brillante", sky: "#101926", ground: "#365945", accent: "#faff70", enemy: "#75ddff", audio: "14-luciernagas.mp3" },
-  { title: "Jangadero", theme: "Rio final", sky: "#245a73", ground: "#7f674f", accent: "#ffd166", enemy: "#6e44ff", audio: "15-jangadero.mp3" },
-];
-
-const width = 960;
-const height = 540;
-const gravity = 0.42;
-const friction = 0.86;
-const saveKey = "milo-j-pixel-run-progress";
-
-function freshPlayer(): Player {
-  return { x: 60, y: 360, spawnX: 60, spawnY: 360, vx: 0, vy: 0, w: 32, h: 46, grounded: false, invincible: 0, powered: 0, transformed: false, facing: 1 };
-}
-
-function makeEnemy(x: number, y: number, level: number, seed: number): Enemy {
-  const patterns: Enemy["pattern"][] = level < 3 ? ["walk"] : level < 7 ? ["walk", "hop"] : level < 11 ? ["walk", "hop", "sine"] : ["walk", "hop", "sine", "charge"];
-  const pattern = patterns[(seed + level) % patterns.length];
-  const speed = 0.62 + level * 0.035 + (pattern === "charge" ? 0.22 : 0);
-  return {
-    x,
-    y,
-    baseY: y,
-    vx: speed,
-    min: x - 22,
-    max: x + 96 + level * 6,
-    w: pattern === "charge" ? 36 : 30,
-    h: pattern === "sine" ? 28 : 30,
-    kind: (seed + level) % 4,
-    pattern,
-    phase: seed * 31,
-  };
-}
-
-function makeWorld(level: number): World {
-  const difficulty = level / (tracks.length - 1);
-  const length = 2450 + level * 185;
-  const platforms: Platform[] = [];
-  const notes: Note[] = [];
-  const blocks: Block[] = [];
-  const mates: Mate[] = [];
-  const enemies: Enemy[] = [];
-  const platformCount = 7 + Math.floor(level * 0.62);
-  const mateBlockIndexes = new Set<number>(level < 6 ? [3] : level < 11 ? [4] : [3, 9]);
-  const groundGap = 0;
-  const groundChunk = length + 360;
-
-  for (let x = 0; x < length + 360; x += groundChunk + groundGap) {
-    platforms.push({ x, y: 468, w: Math.min(groundChunk, length + 360 - x), h: 80 });
-  }
-
-  for (let i = 0; i < platformCount; i += 1) {
-    const gap = 240 + Math.floor(difficulty * 30) + ((i * 19 + level * 13) % 34);
-    const x = 410 + i * gap;
-    const lift = level < 3 ? 0 : Math.floor((i % 3) * difficulty * 18);
-    const y = 410 - ((i + level) % 3) * (28 + Math.floor(difficulty * 8)) - lift;
-    const w = Math.max(92, 170 - Math.floor(difficulty * 36) - ((i + level) % 3) * 8);
-    platforms.push({ x, y, w, h: 20 });
-
-    notes.push({ x: x + 24, y: y - 34, collected: false });
-    if (i % 2 === 0) notes.push({ x: x + Math.min(w - 24, 78), y: y - 62, collected: false });
-
-    if (i % 3 === 0 || i > 6) {
-      enemies.push(makeEnemy(x + 16, y - 30, level, i));
-    }
-
-    if ((i + level) % 3 !== 1) {
-      blocks.push({ x: x + Math.min(34, w - 44), y: y - 96, hit: false, bump: 0, hasMate: mateBlockIndexes.has(i) });
-    }
-  }
-
-  for (let i = 0; i < 8 + Math.floor(level / 3); i += 1) {
-    notes.push({ x: 170 + i * (230 - Math.floor(difficulty * 28)), y: 420 - ((i * 37 + level * 19) % 105), collected: false });
-  }
-
-  enemies.push(makeEnemy(length - 360, 436, level, 99));
-  platforms.push({ x: length - 260, y: 412 - Math.floor(difficulty * 52), w: 130 - Math.floor(difficulty * 22), h: 20 });
-  return { platforms, notes, blocks, mates, enemies, length };
-}
-
-function rectsOverlap(a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }) {
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
+type Track = (typeof tracks)[number];
+type Player = ReturnType<typeof freshPlayer>;
+type World = ReturnType<typeof makeWorld>;
+type Enemy = World["enemies"][number];
 
 function drawPixelText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, size = 16, color = "#fff") {
   ctx.fillStyle = color;
   ctx.font = `${size}px var(--font-pixel), monospace`;
   ctx.textBaseline = "top";
   ctx.fillText(text, x, y);
-}
-
-function audioCandidates(fileName: string) {
-  return [`/audio/${fileName}`, `/audio/${fileName}.mp3`];
 }
 
 async function firstPlayableAudio(fileName: string) {
@@ -179,14 +56,23 @@ export default function Home() {
   const [won, setWon] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
+  const [progress, setProgress] = useState(defaultProgress());
+  const [debugMode, setDebugMode] = useState(false);
 
   const currentTrack = tracks[level];
   const levelLabel = useMemo(() => `${String(level + 1).padStart(2, "0")} / ${tracks.length}`, [level]);
 
   useEffect(() => {
-    const saved = Number(localStorage.getItem(saveKey) ?? "1");
-    if (Number.isFinite(saved)) setUnlocked(Math.max(1, Math.min(tracks.length, saved)));
+    const saved = readProgress(localStorage);
+    setProgress(saved);
+    setUnlocked(Math.max(1, Math.min(tracks.length, saved.unlocked)));
+    setMusicEnabled(Boolean(saved.musicEnabled));
   }, []);
+
+  const persistProgress = (nextProgress: ReturnType<typeof defaultProgress>) => {
+    setProgress(nextProgress);
+    writeProgress(localStorage, nextProgress);
+  };
 
   const resetLevel = (levelIndex: number) => {
     worldRef.current = makeWorld(levelIndex);
@@ -243,40 +129,10 @@ export default function Home() {
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
-    const resizePlayerKeepingFeet = (nextW: number, nextH: number) => {
-      const p = player.current;
-      const feet = p.y + p.h;
-      const center = p.x + p.w / 2;
-      p.w = nextW;
-      p.h = nextH;
-      p.x = center - nextW / 2;
-      p.y = feet - nextH;
-    };
-
-    const snapPlayerToFloor = () => {
-      const p = player.current;
-      const world = worldRef.current;
-      const feet = p.y + p.h;
-      const support = world.platforms.find(
-        (platform) =>
-          p.x + p.w > platform.x + 4 &&
-          p.x < platform.x + platform.w - 4 &&
-          feet >= platform.y - 10 &&
-          feet <= platform.y + 22,
-      );
-      if (!support) return;
-      p.y = support.y - p.h;
-      p.vy = 0;
-      p.grounded = true;
-    };
-
     const respawnOnSafePlatform = () => {
       const p = player.current;
       const world = worldRef.current;
-      const candidates = world.platforms
-        .filter((platform) => platform.x <= p.x + 12 && platform.y < height && platform.w >= 64)
-        .sort((a, b) => b.x - a.x || b.w - a.w);
-      const safe = candidates[0] ?? world.platforms[0];
+      const safe = findSafePlatform(p, world);
       p.x = Math.max(30, Math.min(safe.x + 28, safe.x + safe.w - p.w - 18));
       p.y = safe.y - p.h;
       p.spawnX = p.x;
@@ -321,8 +177,18 @@ export default function Home() {
       setWon(true);
       const nextUnlock = Math.min(tracks.length, Math.max(unlocked, level + 2));
       setUnlocked(nextUnlock);
-      localStorage.setItem(saveKey, String(nextUnlock));
-      setScore((value) => value + 100);
+      const collectedNotes = worldRef.current.notes.filter((note) => note.collected).length;
+      setScore((value) => {
+        const finalScore = value + 100;
+        const nextProgress = {
+          ...progress,
+          unlocked: nextUnlock,
+          bestScores: progress.bestScores.map((best: number, index: number) => (index === level ? Math.max(best, finalScore) : best)),
+          notesCollected: progress.notesCollected.map((best: number, index: number) => (index === level ? Math.max(best, collectedNotes) : best)),
+        };
+        persistProgress(nextProgress);
+        return finalScore;
+      });
       setStatus(level === tracks.length - 1 ? "Album completo en el Obelisco." : "Llegaste al Obelisco. Se abre la proxima cancion.");
     };
 
@@ -420,8 +286,8 @@ export default function Home() {
             p.powered = 700;
             p.transformed = true;
             p.invincible = Math.max(p.invincible, 100);
-            resizePlayerKeepingFeet(36, 52);
-            snapPlayerToFloor();
+            resizePlayerKeepingFeet(p, 36, 52);
+            snapPlayerToFloor(p, worldRef.current);
             setScore((value) => value + 75);
             setLives((value) => Math.min(5, value + 1));
             setStatus("Mate power: Milo de ahora. Mas grande, mas fuerte, por poco tiempo.");
@@ -430,8 +296,8 @@ export default function Home() {
 
         if (p.powered <= 0) {
           if (p.w !== 32 || p.h !== 46) {
-            resizePlayerKeepingFeet(32, 46);
-            snapPlayerToFloor();
+            resizePlayerKeepingFeet(p, 32, 46);
+            snapPlayerToFloor(p, worldRef.current);
           }
         }
 
@@ -459,17 +325,6 @@ export default function Home() {
       loop.current = requestAnimationFrame(step);
     };
 
-    const moveEnemy = (enemy: Enemy) => {
-      if (enemy.x < -1000) return;
-      enemy.phase += 1;
-      const chargeBoost = enemy.pattern === "charge" && Math.floor(enemy.phase / 95) % 2 === 1 ? 1.9 : 1;
-      enemy.x += enemy.vx * chargeBoost;
-      if (enemy.x < enemy.min || enemy.x > enemy.max) enemy.vx *= -1;
-      if (enemy.pattern === "hop") enemy.y = enemy.baseY - Math.max(0, Math.sin(enemy.phase / 18)) * 28;
-      if (enemy.pattern === "sine") enemy.y = enemy.baseY + Math.sin(enemy.phase / 22) * 34;
-      if (enemy.pattern === "walk" || enemy.pattern === "charge") enemy.y = enemy.baseY;
-    };
-
     const draw = (context: CanvasRenderingContext2D, track: Track, world: World, p: Player) => {
       const cam = Math.max(0, Math.min(world.length - width + 120, p.x - 260));
       context.imageSmoothingEnabled = false;
@@ -487,6 +342,7 @@ export default function Home() {
 
       drawObeliscoGoal(context, world.length - cam - 82, 330, track.accent);
       drawMilo(context, p.x - cam, p.y, p.invincible, p.powered, p.transformed, p.facing, track.accent);
+      if (debugMode) drawDebug(context, world, p, cam);
       drawPixelText(context, track.title, 24, 18, 20, "#fff");
       drawPixelText(context, track.theme, 24, 44, 13, "rgba(255,255,255,0.82)");
       drawPixelText(context, `Notas ${score}  Vidas ${lives}  Mate ${p.powered > 0 ? "PODER" : p.transformed ? "LOOK" : "RARO"}`, 520, 18, 14, "#fff");
@@ -503,6 +359,25 @@ export default function Home() {
         drawPixelText(context, "GAME OVER", 356, 204, 34, "#ff5f6d");
         drawPixelText(context, "Reinicia el nivel y volve a intentarlo", 298, 260, 15, "#fff");
       }
+    };
+
+    const drawDebug = (context: CanvasRenderingContext2D, world: World, p: Player, cam: number) => {
+      context.save();
+      context.strokeStyle = "#ff3355";
+      context.lineWidth = 2;
+      context.strokeRect(p.x - cam, p.y, p.w, p.h);
+      context.strokeStyle = "#68f7ff";
+      for (const platform of world.platforms) context.strokeRect(platform.x - cam, platform.y, platform.w, platform.h);
+      context.strokeStyle = "#ffec5c";
+      for (const block of world.blocks) context.strokeRect(block.x - cam, block.y + block.bump, 34, 34);
+      context.strokeStyle = "#ff8fcb";
+      for (const enemy of world.enemies) if (enemy.x > -1000) context.strokeRect(enemy.x - cam, enemy.y, enemy.w, enemy.h);
+      context.fillStyle = "rgba(0,0,0,0.62)";
+      context.fillRect(20, 72, 310, 76);
+      drawPixelText(context, `x ${Math.round(p.x)} y ${Math.round(p.y)} vx ${p.vx.toFixed(2)} vy ${p.vy.toFixed(2)}`, 32, 84, 12, "#fff");
+      drawPixelText(context, `ground ${p.grounded ? "yes" : "no"} power ${p.powered} look ${p.transformed ? "actual" : "chico"}`, 32, 106, 12, "#fff");
+      drawPixelText(context, `entities p${world.platforms.length} b${world.blocks.length} e${world.enemies.filter((enemy) => enemy.x > -1000).length}`, 32, 128, 12, "#fff");
+      context.restore();
     };
 
     const drawBackdrop = (context: CanvasRenderingContext2D, levelIndex: number, track: Track, cam: number) => {
@@ -769,7 +644,7 @@ export default function Home() {
       context.fillRect(x + 78, y + 42, 8, 6);
     };
 
-    const drawMilo = (context: CanvasRenderingContext2D, x: number, y: number, blink: number, powered: number, transformed: boolean, facing: 1 | -1, accent: string) => {
+    const drawMilo = (context: CanvasRenderingContext2D, x: number, y: number, blink: number, powered: number, transformed: boolean, facing: number, accent: string) => {
       if (blink > 0 && Math.floor(blink / 6) % 2 === 0) return;
       const walking = Math.abs(player.current.vx) > 0.45 && player.current.grounded;
       const stepFrame = walking ? Math.floor(tick.current / 8) % 2 : 0;
@@ -869,7 +744,7 @@ export default function Home() {
     return () => {
       if (loop.current) cancelAnimationFrame(loop.current);
     };
-  }, [level, lives, score, unlocked, won, gameOver]);
+  }, [level, lives, score, unlocked, won, gameOver, debugMode]);
 
   const press = (key: string, value: boolean) => {
     keys.current[key] = value;
@@ -881,6 +756,7 @@ export default function Home() {
     if (musicEnabled) {
       audio.pause();
       setMusicEnabled(false);
+      persistProgress({ ...progress, musicEnabled: false });
       setStatus("Musica pausada.");
       return;
     }
@@ -896,6 +772,7 @@ export default function Home() {
       })
       .then(() => {
         setMusicEnabled(true);
+        persistProgress({ ...progress, musicEnabled: true });
         setStatus(`Sonando: ${tracks[level].title}`);
       })
       .catch(() => {
@@ -932,6 +809,9 @@ export default function Home() {
             <button type="button" onClick={toggleMusic}>
               {musicEnabled ? "Pausar musica" : "Musica"}
             </button>
+            <button type="button" onClick={() => setDebugMode((value) => !value)}>
+              {debugMode ? "Debug off" : "Debug"}
+            </button>
             <button type="button" onClick={() => setLevel((value) => Math.min(unlocked - 1, value + 1))} disabled={level >= unlocked - 1}>
               Siguiente
             </button>
@@ -965,7 +845,11 @@ export default function Home() {
           >
             <span>{String(index + 1).padStart(2, "0")}</span>
             <strong>{track.title}</strong>
-            <small>{index < unlocked ? track.theme : "bloqueado"}</small>
+            <small>
+              {index < unlocked
+                ? `${track.theme} | best ${progress.bestScores[index] ?? 0} | notas ${progress.notesCollected[index] ?? 0}`
+                : "bloqueado"}
+            </small>
           </button>
         ))}
       </aside>
