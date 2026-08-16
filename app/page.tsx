@@ -26,6 +26,89 @@ type Track = (typeof tracks)[number];
 type Player = ReturnType<typeof freshPlayer>;
 type World = ReturnType<typeof makeWorld>;
 type Enemy = World["enemies"][number];
+type SpriteRect = [number, number, number, number, string];
+type SpriteFrame = SpriteRect[];
+
+const miloPalette = {
+  hair: "#101010",
+  skin: "#d9a276",
+  skinShade: "#b87955",
+  blue: "#2d5d86",
+  blueLight: "#477da8",
+  white: "#f0f0f0",
+  pants: "#1f2a44",
+  shoe: "#efefef",
+  mouth: "#7a3d36",
+  brown: "#4b241b",
+  brownLight: "#6a3829",
+  gold: "#ffd54a",
+  zipper: "#d8d0c0",
+};
+
+const miloSprites: Record<"chico" | "actual", Record<"idle" | "run1" | "run2" | "jump" | "hit", SpriteFrame>> = {
+  chico: {
+    idle: [
+      [7, 1, 22, 7, "hair"], [5, 8, 27, 7, "hair"], [3, 14, 7, 5, "hair"], [27, 14, 6, 5, "hair"],
+      [8, 8, 20, 3, "brown"], [9, 17, 18, 13, "skin"], [12, 22, 4, 4, "hair"], [22, 22, 4, 4, "hair"], [16, 29, 7, 3, "mouth"],
+      [3, 31, 30, 16, "blue"], [6, 33, 8, 13, "blueLight"], [23, 33, 8, 13, "blueLight"], [12, 31, 13, 16, "white"],
+      [2, 32, 6, 11, "skin"], [28, 32, 6, 11, "skin"], [8, 46, 8, 16, "pants"], [20, 46, 8, 16, "pants"], [5, 60, 11, 4, "shoe"], [20, 60, 11, 4, "shoe"],
+    ],
+    run1: [
+      [7, 1, 22, 7, "hair"], [5, 8, 27, 7, "hair"], [3, 14, 7, 5, "hair"], [27, 14, 6, 5, "hair"],
+      [9, 17, 18, 13, "skin"], [12, 22, 4, 4, "hair"], [22, 22, 4, 4, "hair"], [16, 29, 7, 3, "mouth"],
+      [3, 31, 30, 16, "blue"], [6, 33, 8, 13, "blueLight"], [23, 33, 8, 13, "blueLight"], [12, 31, 13, 16, "white"],
+      [0, 34, 7, 10, "skin"], [29, 30, 6, 12, "skin"], [7, 46, 8, 19, "pants"], [21, 46, 8, 14, "pants"], [4, 63, 12, 4, "shoe"], [21, 58, 12, 4, "shoe"],
+    ],
+    run2: [
+      [7, 2, 22, 7, "hair"], [5, 9, 27, 7, "hair"], [3, 15, 7, 5, "hair"], [27, 15, 6, 5, "hair"],
+      [9, 18, 18, 13, "skin"], [12, 23, 4, 4, "hair"], [22, 23, 4, 4, "hair"], [16, 30, 7, 3, "mouth"],
+      [3, 32, 30, 16, "blue"], [6, 34, 8, 13, "blueLight"], [23, 34, 8, 13, "blueLight"], [12, 32, 13, 16, "white"],
+      [1, 30, 7, 12, "skin"], [29, 34, 6, 10, "skin"], [8, 47, 8, 14, "pants"], [20, 47, 8, 19, "pants"], [5, 59, 12, 4, "shoe"], [20, 64, 12, 4, "shoe"],
+    ],
+    jump: [
+      [7, 0, 22, 7, "hair"], [5, 7, 27, 7, "hair"], [9, 16, 18, 13, "skin"], [12, 21, 4, 4, "hair"], [22, 21, 4, 4, "hair"],
+      [3, 30, 30, 16, "blue"], [12, 30, 13, 16, "white"], [0, 26, 7, 14, "skin"], [29, 26, 6, 14, "skin"],
+      [9, 45, 8, 17, "pants"], [19, 45, 8, 17, "pants"], [6, 60, 11, 4, "shoe"], [19, 60, 11, 4, "shoe"],
+    ],
+    hit: [
+      [7, 1, 22, 7, "hair"], [5, 8, 27, 7, "hair"], [9, 17, 18, 13, "skin"], [11, 22, 5, 4, "hair"], [23, 22, 5, 4, "hair"],
+      [3, 31, 30, 16, "blue"], [12, 31, 13, 16, "white"], [2, 32, 6, 11, "skin"], [28, 32, 6, 11, "skin"],
+      [8, 46, 8, 16, "pants"], [20, 46, 8, 16, "pants"], [5, 60, 11, 4, "shoe"], [20, 60, 11, 4, "shoe"],
+    ],
+  },
+  actual: {
+    idle: [
+      [9, 0, 20, 5, "hair"], [6, 5, 26, 7, "hair"], [4, 12, 29, 7, "hair"], [8, 18, 22, 15, "skin"],
+      [12, 23, 4, 4, "hair"], [24, 23, 4, 4, "hair"], [17, 31, 9, 3, "mouth"], [23, 31, 3, 3, "gold"],
+      [4, 34, 30, 21, "brown"], [6, 36, 9, 18, "brownLight"], [23, 36, 9, 18, "brownLight"], [18, 35, 3, 20, "zipper"],
+      [0, 36, 7, 14, "skin"], [32, 36, 7, 14, "skin"], [6, 53, 10, 17, "hair"], [22, 53, 10, 17, "hair"], [4, 67, 12, 4, "shoe"], [22, 67, 12, 4, "shoe"],
+    ],
+    run1: [
+      [9, 0, 20, 5, "hair"], [6, 5, 26, 7, "hair"], [4, 12, 29, 7, "hair"], [8, 18, 22, 15, "skin"],
+      [12, 23, 4, 4, "hair"], [24, 23, 4, 4, "hair"], [17, 31, 9, 3, "mouth"], [23, 31, 3, 3, "gold"],
+      [4, 34, 30, 21, "brown"], [18, 35, 3, 20, "zipper"], [0, 37, 7, 13, "skin"], [32, 34, 7, 13, "skin"],
+      [5, 53, 10, 20, "hair"], [23, 53, 10, 15, "hair"], [3, 70, 13, 4, "shoe"], [23, 65, 12, 4, "shoe"],
+    ],
+    run2: [
+      [9, 1, 20, 5, "hair"], [6, 6, 26, 7, "hair"], [4, 13, 29, 7, "hair"], [8, 19, 22, 15, "skin"],
+      [12, 24, 4, 4, "hair"], [24, 24, 4, 4, "hair"], [17, 32, 9, 3, "mouth"], [23, 32, 3, 3, "gold"],
+      [4, 35, 30, 21, "brown"], [18, 36, 3, 20, "zipper"], [0, 34, 7, 13, "skin"], [32, 38, 7, 13, "skin"],
+      [6, 54, 10, 15, "hair"], [22, 54, 10, 20, "hair"], [4, 66, 12, 4, "shoe"], [22, 71, 13, 4, "shoe"],
+    ],
+    jump: [
+      [9, 0, 20, 5, "hair"], [6, 5, 26, 7, "hair"], [4, 12, 29, 7, "hair"], [8, 18, 22, 15, "skin"],
+      [12, 23, 4, 4, "hair"], [24, 23, 4, 4, "hair"], [17, 31, 9, 3, "mouth"], [23, 31, 3, 3, "gold"],
+      [4, 34, 30, 21, "brown"], [18, 35, 3, 20, "zipper"], [0, 30, 7, 15, "skin"], [32, 30, 7, 15, "skin"],
+      [7, 53, 10, 17, "hair"], [21, 53, 10, 17, "hair"], [5, 67, 12, 4, "shoe"], [21, 67, 12, 4, "shoe"],
+    ],
+    hit: [
+      [9, 0, 20, 5, "hair"], [6, 5, 26, 7, "hair"], [4, 12, 29, 7, "hair"], [8, 18, 22, 15, "skin"],
+      [11, 23, 5, 4, "hair"], [24, 23, 5, 4, "hair"], [17, 31, 9, 3, "mouth"], [23, 31, 3, 3, "gold"],
+      [4, 34, 30, 21, "brown"], [18, 35, 3, 20, "zipper"], [0, 36, 7, 14, "skin"], [32, 36, 7, 14, "skin"],
+      [6, 53, 10, 17, "hair"], [22, 53, 10, 17, "hair"], [4, 67, 12, 4, "shoe"], [22, 67, 12, 4, "shoe"],
+    ],
+  },
+};
 
 function drawPixelText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, size = 16, color = "#fff") {
   ctx.fillStyle = color;
@@ -60,6 +143,7 @@ export default function Home() {
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [progress, setProgress] = useState(defaultProgress());
   const [debugMode, setDebugMode] = useState(false);
+  const [showGlobalIntro, setShowGlobalIntro] = useState(true);
   const [showIntro, setShowIntro] = useState(true);
   const [routeProgress, setRouteProgress] = useState(0);
 
@@ -419,6 +503,7 @@ export default function Home() {
       }
 
       const motif = levelIndex % tracks.length;
+      drawAlbumParallax(context, motif, cam, track);
       if (motif === 0) drawSkinLayers(context, cam, track.accent);
       if (motif === 1) drawPatio(context, cam);
       if (motif === 2) drawCity(context, cam, track.accent);
@@ -434,6 +519,88 @@ export default function Home() {
       if (motif === 12) drawInvisibleWoods(context, cam);
       if (motif === 13) drawFireflies(context, cam);
       if (motif === 14) drawRiver(context, cam);
+    };
+
+    const drawAlbumParallax = (context: CanvasRenderingContext2D, motif: number, cam: number, track: Track) => {
+      const far = cam * 0.07;
+      const mid = cam * 0.2;
+      context.fillStyle = "rgba(0,0,0,0.12)";
+      for (let x = -120; x < width + 160; x += 150) {
+        const px = x - (far % 150);
+        context.fillRect(px, 332 + ((x + motif * 17) % 4) * 12, 94, 136);
+      }
+
+      context.fillStyle = "rgba(255,255,255,0.1)";
+      for (let x = -60; x < width + 180; x += 220) {
+        const px = x - (mid % 220);
+        context.fillRect(px, 382, 74, 10);
+        context.fillRect(px + 26, 362, 22, 20);
+      }
+
+      const x = 760 - (cam * 0.12) % 980;
+      context.fillStyle = "rgba(255,255,255,0.2)";
+      if (motif === 0) {
+        context.fillRect(x, 218, 120, 14);
+        context.fillRect(x + 24, 240, 150, 14);
+        context.fillRect(x + 52, 262, 98, 14);
+      } else if (motif === 1) {
+        context.fillRect(x, 300, 86, 58);
+        context.fillStyle = "#b5494a";
+        context.fillRect(x + 10, 278, 66, 22);
+      } else if (motif === 2) {
+        context.fillRect(x, 214, 64, 200);
+        context.fillStyle = track.accent;
+        for (let i = 0; i < 5; i += 1) context.fillRect(x + 14, 244 + i * 28, 8, 8);
+      } else if (motif === 3 || motif === 4) {
+        context.fillStyle = "rgba(255,255,255,0.24)";
+        context.fillRect(x, 126, 78, 78);
+        context.fillStyle = track.accent;
+        context.fillRect(x - 36, 330, 170, 8);
+      } else if (motif === 5) {
+        context.fillRect(x, 322, 46, 70);
+        context.fillRect(x + 70, 300, 42, 92);
+        context.fillStyle = track.accent;
+        context.fillRect(x + 12, 286, 20, 36);
+      } else if (motif === 6) {
+        context.fillStyle = "rgba(0,0,0,0.28)";
+        context.fillRect(x, 176, 190, 120);
+        context.fillStyle = track.accent;
+        for (let i = 0; i < 12; i += 1) context.fillRect(x + 22 + i * 12, 252 - (i % 4) * 18, 7, 42);
+      } else if (motif === 7) {
+        context.fillStyle = track.accent;
+        for (let i = 0; i < 12; i += 1) context.fillRect(x + i * 28, 184 + (i % 3) * 40, 4, 28);
+      } else if (motif === 8) {
+        context.fillRect(x, 170, 72, 52);
+        context.fillRect(x + 94, 218, 72, 52);
+      } else if (motif === 9) {
+        context.fillStyle = "#28222a";
+        context.fillRect(x, 328, 130, 48);
+        context.fillStyle = "#ff784f";
+        context.fillRect(x + 34, 304, 64, 24);
+      } else if (motif === 10) {
+        context.fillRect(x, 134, 74, 12);
+        context.fillRect(x, 238, 74, 12);
+        context.fillStyle = track.accent;
+        context.fillRect(x + 32, 150, 10, 84);
+      } else if (motif === 11) {
+        context.strokeStyle = "rgba(255,255,255,0.24)";
+        context.strokeRect(x, 306, 112, 72);
+        context.fillStyle = "#fff";
+        context.fillRect(x + 54, 306, 4, 72);
+      } else if (motif === 12) {
+        context.fillRect(x + 20, 248, 20, 160);
+        context.fillRect(x, 216, 70, 46);
+        context.fillRect(x + 76, 238, 18, 170);
+      } else if (motif === 13) {
+        context.fillStyle = track.accent;
+        for (let i = 0; i < 18; i += 1) context.fillRect(x + i * 18, 164 + ((i * 29 + tick.current) % 150), 5, 5);
+      } else {
+        context.fillStyle = "rgba(120,210,230,0.34)";
+        context.fillRect(0, 398, width, 70);
+        context.fillStyle = track.accent;
+        context.fillRect(x, 340, 94, 20);
+        context.fillRect(x + 18, 320, 44, 20);
+      }
     };
 
     const drawSkinLayers = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
@@ -706,97 +873,30 @@ export default function Home() {
     const drawMilo = (context: CanvasRenderingContext2D, x: number, y: number, blink: number, powered: number, transformed: boolean, facing: number, accent: string) => {
       if (blink > 0 && Math.floor(blink / 6) % 2 === 0) return;
       const walking = Math.abs(player.current.vx) > 0.45 && player.current.grounded;
-      const stepFrame = walking ? Math.floor(tick.current / 8) % 2 : 0;
-      if (transformed) drawMiloActual(context, x, y - 6, stepFrame, powered > 0, accent);
-      else drawMiloChiquito(context, x, y, stepFrame, accent);
+      const frameName = blink > 0 ? "hit" : !player.current.grounded ? "jump" : walking ? (Math.floor(tick.current / 8) % 2 === 0 ? "run1" : "run2") : "idle";
+      const spriteSet = transformed ? miloSprites.actual : miloSprites.chico;
+      const frame = spriteSet[frameName];
+      if (transformed && powered > 0) {
+        context.fillStyle = "rgba(115,240,189,0.26)";
+        context.fillRect(x - 6, y - 8, 48, 72);
+      }
+      drawSpriteFrame(context, frame, x, transformed ? y - 8 : y, facing, accent);
     };
 
-    const drawMiloChiquito = (context: CanvasRenderingContext2D, x: number, y: number, stepFrame: number, accent: string) => {
-      const stepA = stepFrame === 0 ? 0 : 3;
-      const stepB = stepFrame === 0 ? 3 : 0;
-      context.fillStyle = "#111";
-      context.fillRect(x + 7, y + 1, 22, 7);
-      context.fillRect(x + 5, y + 8, 27, 7);
-      context.fillRect(x + 3, y + 14, 7, 5);
-      context.fillRect(x + 27, y + 14, 6, 5);
-      context.fillStyle = "#2b1a12";
-      context.fillRect(x + 8, y + 8, 20, 3);
-      context.fillStyle = "#d9a276";
-      context.fillRect(x + 9, y + 17, 18, 13);
-      context.fillStyle = "#111";
-      context.fillRect(x + 12, y + 22, 4, 4);
-      context.fillRect(x + 22, y + 22, 4, 4);
-      context.fillStyle = "#7a3d36";
-      context.fillRect(x + 16, y + 29, 7, 3);
-      context.fillStyle = "#cfd7e5";
-      context.fillRect(x + 16, y + 31, 3, 8);
-      context.fillRect(x + 17, y + 39, 4, 3);
-      context.fillStyle = "#2d5d86";
-      context.fillRect(x + 3, y + 31, 30, 16);
-      context.fillStyle = "#477da8";
-      context.fillRect(x + 6, y + 33, 8, 13);
-      context.fillRect(x + 23, y + 33, 8, 13);
-      context.fillStyle = "#f0f0f0";
-      context.fillRect(x + 12, y + 31, 13, 16);
+    const drawSpriteFrame = (context: CanvasRenderingContext2D, frame: SpriteFrame, x: number, y: number, facing: number, accent: string) => {
+      context.save();
+      if (facing < 0) {
+        context.translate(x + 39, y);
+        context.scale(-1, 1);
+        x = 0;
+      }
+      for (const [px, py, w, h, colorKey] of frame) {
+        context.fillStyle = colorKey === "accent" ? accent : miloPalette[colorKey as keyof typeof miloPalette] ?? colorKey;
+        context.fillRect(x + px, y + py, w, h);
+      }
       context.fillStyle = accent;
       context.fillRect(x + 13, y + 35, 11, 4);
-      context.fillStyle = "#d9a276";
-      context.fillRect(x + 2, y + 32, 6, 11);
-      context.fillRect(x + 28, y + 32, 6, 11);
-      context.fillStyle = "#1f2a44";
-      context.fillRect(x + 8, y + 46, 8, 15 + stepA);
-      context.fillRect(x + 20, y + 46, 8, 15 + stepB);
-      context.fillStyle = "#efefef";
-      context.fillRect(x + 5, y + 59 + stepA, 11, 4);
-      context.fillRect(x + 20, y + 59 + stepB, 11, 4);
-    };
-
-    const drawMiloActual = (context: CanvasRenderingContext2D, x: number, y: number, stepFrame: number, poweredNow: boolean, accent: string) => {
-      const stepA = stepFrame === 0 ? 0 : 3;
-      const stepB = stepFrame === 0 ? 3 : 0;
-      if (poweredNow) {
-        context.fillStyle = "rgba(115,240,189,0.26)";
-        context.fillRect(x - 6, y - 2, 48, 62);
-      }
-      context.fillStyle = "#101010";
-      context.fillRect(x + 9, y, 20, 5);
-      context.fillRect(x + 6, y + 5, 26, 7);
-      context.fillRect(x + 4, y + 12, 29, 7);
-      context.fillStyle = "#1b1b1b";
-      context.fillRect(x + 5, y + 3, 5, 16);
-      context.fillRect(x + 30, y + 6, 4, 13);
-      context.fillStyle = "#d6a06f";
-      context.fillRect(x + 8, y + 18, 22, 15);
-      context.fillStyle = "#111";
-      context.fillRect(x + 12, y + 23, 4, 4);
-      context.fillRect(x + 24, y + 23, 4, 4);
-      context.fillStyle = "#6b332f";
-      context.fillRect(x + 17, y + 31, 9, 3);
-      context.fillStyle = "#ffd54a";
-      context.fillRect(x + 23, y + 31, 3, 3);
-      context.fillStyle = "#4b241b";
-      context.fillRect(x + 4, y + 34, 30, 21);
-      context.fillStyle = "#6a3829";
-      context.fillRect(x + 6, y + 36, 9, 18);
-      context.fillRect(x + 23, y + 36, 9, 18);
-      context.fillStyle = "#d8d0c0";
-      context.fillRect(x + 18, y + 35, 3, 20);
-      context.fillRect(x + 16, y + 35, 7, 3);
-      context.fillStyle = accent;
-      context.fillRect(x + 24, y + 39, 5, 10);
-      context.fillRect(x + 27, y + 45, 5, 3);
-      context.fillStyle = "#111";
-      context.fillRect(x, y + 36, 7, 14);
-      context.fillRect(x + 32, y + 36, 7, 14);
-      context.fillStyle = "#d6a06f";
-      context.fillRect(x, y + 36, 7, 14);
-      context.fillRect(x + 32, y + 36, 7, 14);
-      context.fillStyle = "#111";
-      context.fillRect(x + 6, y + 53, 10, 16 + stepA);
-      context.fillRect(x + 22, y + 53, 10, 16 + stepB);
-      context.fillStyle = "#efefef";
-      context.fillRect(x + 4, y + 66 + stepA, 12, 4);
-      context.fillRect(x + 22, y + 66 + stepB, 12, 4);
+      context.restore();
     };
 
     loop.current = requestAnimationFrame(step);
@@ -842,11 +942,28 @@ export default function Home() {
 
   return (
     <main className="game-shell">
+      {showGlobalIntro && (
+        <div className="global-start">
+          <div className="global-scene" aria-hidden="true">
+            <span className="pixel-sun" />
+            <span className="pixel-obelisco" />
+            <span className="pixel-note note-one" />
+            <span className="pixel-note note-two" />
+            <span className="pixel-milo" />
+          </div>
+          <span className="kicker">La Vida Era Mas Corta</span>
+          <h1>Super Milo J</h1>
+          <p>Un viaje pixelado por 15 canciones, mates raros, notas y checkpoints hasta el Obelisco.</p>
+          <button type="button" onClick={() => setShowGlobalIntro(false)}>
+            Empezar
+          </button>
+        </div>
+      )}
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Milo J Pixel Run v11</span>
-            <h1>La Vida Era Mas Corta</h1>
+            <span className="kicker">Super Milo J v12</span>
+            <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">
             <strong>{levelLabel}</strong>

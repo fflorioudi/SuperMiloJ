@@ -33,6 +33,7 @@ button {
 }
 
 .game-shell {
+  position: relative;
   min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
@@ -43,6 +44,112 @@ button {
     linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
     #0d0e14;
   background-size: 24px 24px;
+}
+
+.global-start {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+  background:
+    linear-gradient(rgba(13, 14, 20, 0.52), rgba(13, 14, 20, 0.86)),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    #121420;
+  background-size: auto, 24px 24px, 24px 24px, auto;
+}
+
+.global-start h1 {
+  margin: 0;
+  color: var(--hot);
+  font-size: clamp(42px, 9vw, 118px);
+  text-shadow: 7px 7px 0 #090a0e;
+}
+
+.global-start p {
+  max-width: 720px;
+  color: #f7f3df;
+  line-height: 1.45;
+}
+
+.global-start button {
+  min-width: 190px;
+  min-height: 54px;
+  border: 3px solid var(--hot);
+  background: var(--panel);
+  color: var(--hot);
+  cursor: pointer;
+  box-shadow: inset -4px -4px 0 rgba(0, 0, 0, 0.32), inset 4px 4px 0 rgba(255, 255, 255, 0.08), 8px 8px 0 #090a0e;
+}
+
+.global-scene {
+  position: relative;
+  width: min(760px, 86vw);
+  height: 190px;
+  border-bottom: 18px solid #5d7f42;
+  overflow: hidden;
+}
+
+.pixel-sun,
+.pixel-obelisco,
+.pixel-note,
+.pixel-milo {
+  position: absolute;
+  display: block;
+}
+
+.pixel-sun {
+  right: 82px;
+  top: 16px;
+  width: 56px;
+  height: 56px;
+  background: #ffce4a;
+  box-shadow: 0 0 0 8px rgba(255, 206, 74, 0.2);
+}
+
+.pixel-obelisco {
+  right: 160px;
+  bottom: 0;
+  width: 24px;
+  height: 126px;
+  background: #e9e2d0;
+  box-shadow: 8px 0 0 #d8cdbb, -12px 126px 0 8px #c9bca7;
+}
+
+.pixel-note {
+  width: 8px;
+  height: 34px;
+  background: var(--mint);
+  box-shadow: 8px 0 0 var(--mint), -12px 26px 0 8px var(--mint);
+}
+
+.note-one {
+  left: 112px;
+  top: 58px;
+}
+
+.note-two {
+  right: 286px;
+  top: 82px;
+  background: var(--hot);
+  box-shadow: 8px 0 0 var(--hot), -12px 26px 0 8px var(--hot);
+}
+
+.pixel-milo {
+  left: 48%;
+  bottom: 0;
+  width: 34px;
+  height: 64px;
+  background:
+    linear-gradient(#111 0 20%, transparent 20%),
+    linear-gradient(90deg, #2d5d86 0 28%, #f0f0f0 28% 70%, #2d5d86 70%),
+    #d9a276;
+  box-shadow: 0 52px 0 -8px #1f2a44, 11px 52px 0 -8px #1f2a44, -4px 62px 0 -8px #efefef, 15px 62px 0 -8px #efefef;
 }
 
 .stage-panel {

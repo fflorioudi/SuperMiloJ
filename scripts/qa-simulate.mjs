@@ -139,7 +139,15 @@ for (let level = 0; level < tracks.length; level += 1) {
   if (world.notes.some((note) => note.y < 40 || note.y > 460)) issues.push("note outside safe vertical range");
   if (world.enemies.some((enemy) => enemy.y < 120 || enemy.y > 440 || enemy.min < 0 || enemy.max > world.length + 120)) issues.push("enemy outside expected patrol bounds");
   if (level >= 4 && world.obstacles.length === 0) issues.push("expected mandatory platform obstacles");
-  if (world.obstacles.some((obstacle) => obstacle.y < 300 || obstacle.y + obstacle.h !== 468 || obstacle.w < 48)) issues.push("obstacle collider does not seal platform route");
+  if (world.obstacles.some((obstacle) => obstacle.y < 360 || obstacle.y + obstacle.h !== 468 || obstacle.w < 36)) issues.push("obstacle collider does not seal ground route");
+  if (world.obstacles.some((obstacle) => world.platforms.some((platform) => platform.y < 455 && rectsOverlap(obstacle, platform)))) issues.push("obstacle overlaps elevated platform");
+  if (
+    world.enemies.some((enemy) =>
+      world.obstacles.some((obstacle) => enemy.baseY + enemy.h > obstacle.y && enemy.min < obstacle.x + obstacle.w && enemy.max + enemy.w > obstacle.x),
+    )
+  ) {
+    issues.push("enemy patrol intersects wall obstacle");
+  }
   if (world.checkpoints.length < 2) issues.push("expected at least two checkpoints");
 
   const runs = Array.from({ length: 10 }, () => runPlayerRoute(world));

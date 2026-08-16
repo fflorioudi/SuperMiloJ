@@ -8,7 +8,7 @@
 - Hecho: guardar progreso con mas detalle: nivel desbloqueado, mejores puntajes, notas recolectadas y musica activada.
 - Hecho: agregar pruebas automaticas mas profundas de colisiones, respawn, power-ups, enemigos y final de nivel.
 - Hecho: reforzar hitbox de plataformas, muros y enemigos para evitar rendijas y paredes atravesables.
-- Pendiente de endurecer: separar render en sprites/escenas cuando pasemos a la etapa de arte.
+- Hecho: separar render del protagonista en spritesheet logica con frames animados.
 
 ## Jugabilidad
 
@@ -24,10 +24,12 @@
 
 - Hecho: agregar pantalla de inicio pixelada y barra visual de progreso del nivel.
 - Hecho: sumar banderas/checkpoints como elementos de presentacion y progreso.
-- Hacer sprites por cuadro en una spritesheet pixel art en vez de dibujarlos solo con rectangulos.
-- Crear animaciones separadas para idle, correr, saltar, tomar mate, recibir golpe y llegar al Obelisco.
-- Mejorar los fondos con mas capas parallax y objetos identificables por cancion.
-- Agregar una pantalla de inicio con seleccion de nivel, volumen y estado de audio.
+- Hecho: hacer sprites por cuadro en una spritesheet pixel art logica en vez de dibujar a Milo como bloque unico.
+- Hecho: crear animaciones separadas para idle, correr, saltar y recibir golpe.
+- Hecho: mejorar los fondos con mas capas parallax y objetos identificables por cancion.
+- Hecho: agregar pantalla de inicio global de **Super Milo J**.
+- Pendiente: agregar seleccion de nivel, volumen y estado de audio dentro de la pantalla global.
+- Pendiente: animaciones especiales para tomar mate y llegar al Obelisco.
 
 ## Audio
 

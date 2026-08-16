@@ -137,3 +137,14 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Se agregaron checkpoints con bandera argentina repartidos por nivel.
 - Al caer despues de activar un checkpoint, Milo reaparece desde ese punto en vez de volver al inicio o a una plataforma rara.
 - Se agrego pantalla de inicio pixelada, barra de avance del nivel y una presentacion mas cuidada del HUD.
+
+### v12
+
+- El juego paso a llamarse **Super Milo J** en la portada y en el HUD.
+- Se agrego una pantalla de inicio global antes de entrar a los niveles.
+- Milo ahora se dibuja desde una spritesheet pixel art organizada por frames: idle, correr, saltar y recibir golpe.
+- Se agregaron animaciones separadas para Milo chico y Milo actual.
+- Los fondos tienen mas capas parallax y objetos identificables por cancion.
+- Los muros de escenario ya no se generan cruzando plataformas ni pegados a bordes que formen escalones trampa.
+- Las patrullas de enemigos se recortan automaticamente si un muro podria dejarlos atrapados.
+- El QA valida que no haya plataformas atravesando muros ni enemigos patrullando contra obstaculos.

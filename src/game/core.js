@@ -55,6 +55,7 @@ export function makeWorld(level) {
   const mates = [];
   const enemies = [];
   const obstacles = [];
+  const obstacleAnchors = [];
   const checkpoints = [];
   const platformCount = 10 + Math.floor(level * 0.82);
   const mateBlockIndexes = new Set(level < 6 ? [3] : level < 11 ? [4] : [3, 9]);
@@ -73,12 +74,45 @@ export function makeWorld(level) {
     platforms.push({ x, y, w, h: 20 });
     notes.push({ x: x + 24, y: y - 34, collected: false });
     if (i % 2 === 0) notes.push({ x: x + Math.min(w - 24, 78), y: y - 62, collected: false });
-    if (i % 3 === 0 || i > 6) enemies.push(makeEnemy(x + 16, y - 30, level, i));
+    if (i % 3 === 0 || i > 6) {
+      const enemy = makeEnemy(x + 16, y - 30, level, i);
+      enemy.min = Math.max(enemy.min, x + 8);
+      enemy.max = Math.min(enemy.max, x + w - enemy.w - 8);
+      enemies.push(enemy);
+    }
     if ((i + level) % 3 !== 1) blocks.push({ x: x + Math.min(34, w - 44), y: y - 96, hit: false, bump: 0, hasMate: mateBlockIndexes.has(i) });
 
     if (level >= 4 && i > 0 && i % 3 === 1) {
-      const wallY = Math.max(376, Math.min(386, y + 6));
-      obstacles.push({ x: x - 44, y: wallY, w: 52, h: 468 - wallY, kind: "wall" });
+      obstacleAnchors.push({ x, w });
+    }
+  }
+
+  for (const anchor of obstacleAnchors) {
+    const wallY = 402;
+    const wallCandidates = [anchor.x - 104, anchor.x - 144, anchor.x - 184, anchor.x + anchor.w + 28, anchor.x + anchor.w + 68, anchor.x - 224];
+    const wall = wallCandidates
+      .map((candidateX) => ({ x: candidateX, y: wallY, w: 40, h: 468 - wallY, kind: "wall" }))
+      .find(
+        (candidate) =>
+          !platforms.some(
+            (platform) =>
+              platform.y < 455 &&
+              (rectsOverlap(candidate, platform) || (candidate.x < platform.x + platform.w + 38 && candidate.x + candidate.w > platform.x - 38)),
+          ),
+      );
+    if (wall) obstacles.push(wall);
+  }
+
+  for (const enemy of enemies) {
+    for (const obstacle of obstacles) {
+      const patrolCrossesWall = enemy.baseY + enemy.h > obstacle.y && enemy.min < obstacle.x + obstacle.w && enemy.max + enemy.w > obstacle.x;
+      if (!patrolCrossesWall) continue;
+      if (enemy.x < obstacle.x) enemy.max = Math.min(enemy.max, obstacle.x - enemy.w - 8);
+      else enemy.min = Math.max(enemy.min, obstacle.x + obstacle.w + 8);
+      if (enemy.max <= enemy.min) {
+        enemy.min = enemy.x - 12;
+        enemy.max = enemy.x + 12;
+      }
     }
   }
 

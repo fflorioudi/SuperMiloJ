@@ -14,6 +14,8 @@ Fecha: 2026-08-16
 - La simulacion automatica ahora salta ante plataformas y obstaculos.
 - Se agregaron pruebas puntuales para rendijas entre muros/plataformas y enemigos chocando contra paredes.
 - Se valida que cada nivel tenga checkpoints y que la ruta extendida siga siendo completable.
+- Se valida que los muros no crucen plataformas elevadas ni queden pegados a bordes que formen escalones trampa.
+- Se valida que las patrullas de enemigos no atraviesen muros de escenario.
 
 ## Resultado
 
@@ -31,6 +33,7 @@ Fecha: 2026-08-16
 - Las hitbox visuales y fisicas de Milo quedaron alineadas para evitar falsa sensacion de flotar o atravesar piso.
 - Los enemigos rebotan contra muros solidos en vez de atravesarlos.
 - Los niveles son mas largos e incorporan checkpoints para sostener mejor sesiones con musica.
+- Los fondos y la presentacion avanzaron a una version mas visual, con portada global de **Super Milo J**.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba
