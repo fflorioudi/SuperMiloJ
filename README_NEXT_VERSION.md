@@ -4,7 +4,7 @@
 
 - Hecho: separar nucleo testeable inicial en `src/game/core.js` para mundo, fisica base, player, enemigos, audio y progreso.
 - Hecho: el QA automatizado ahora usa el mismo nucleo que la app.
-- Hecho: agregar modo debug opcional con hitboxes, posicion del jugador, entidades y estado del power-up.
+- Hecho: agregar modo debug oculto para QA con hitboxes, posicion del jugador, entidades y estado del power-up.
 - Hecho: guardar progreso con mas detalle: nivel desbloqueado, mejores puntajes, notas recolectadas y musica activada.
 - Pendiente de endurecer: agregar pruebas automaticas mas profundas de colisiones, respawn, power-ups, enemigos y final de nivel.
 - Pendiente de endurecer: separar render en sprites/escenas cuando pasemos a la etapa de arte.
@@ -12,7 +12,7 @@
 ## Jugabilidad
 
 - Agregar tutorial corto en el nivel 1 con bloques faciles, un mate visible y un enemigo de practica.
-- Convertir las plataformas flotantes en rutas alternativas con recompensas, no en camino obligatorio.
+- Hecho: algunos niveles medios y avanzados obligan a subir por plataformas mediante muros de escenario.
 - Ajustar dificultad por grupos de canciones: facil 1-5, medio 6-10, dificil 11-15.
 - Agregar checkpoints visuales antes de zonas con enemigos o saltos opcionales.
 - Mejorar el game feel con coyote time, salto variable y pequenas particulas al caer o tomar mate.

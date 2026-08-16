@@ -111,6 +111,7 @@ export default function Home() {
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
       keys.current[event.key.toLowerCase()] = true;
+      if (event.key.toLowerCase() === "h" && event.shiftKey) setDebugMode((value) => !value);
       if ([" ", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(event.key.toLowerCase())) event.preventDefault();
     };
     const up = (event: KeyboardEvent) => {
@@ -257,6 +258,21 @@ export default function Home() {
           }
         }
 
+        for (const obstacle of world.obstacles) {
+          if (!rectsOverlap(p, obstacle)) continue;
+          if (p.vy >= 0 && p.y + p.h - p.vy <= obstacle.y + 5) {
+            p.y = obstacle.y - p.h;
+            p.vy = 0;
+            p.grounded = true;
+          } else if (p.x + p.w / 2 < obstacle.x + obstacle.w / 2) {
+            p.x = obstacle.x - p.w;
+            p.vx = Math.min(0, p.vx);
+          } else {
+            p.x = obstacle.x + obstacle.w;
+            p.vx = Math.max(0, p.vx);
+          }
+        }
+
         p.x = Math.max(0, Math.min(world.length, p.x));
         if (p.y > height + 80) hurtPlayer();
         if (p.invincible > 0) p.invincible -= 1;
@@ -339,6 +355,7 @@ export default function Home() {
       for (const note of world.notes) if (!note.collected) drawNote(context, note.x - cam, note.y, track.accent);
       for (const mate of world.mates) if (!mate.collected) drawMate(context, mate.x - cam, mate.y);
       for (const enemy of world.enemies) if (enemy.x > -1000) drawEnemy(context, enemy.x - cam, enemy.y, enemy.w, enemy.h, track.enemy, enemy.kind, enemy.pattern);
+      for (const obstacle of world.obstacles) drawObstacle(context, obstacle.x - cam, obstacle.y, obstacle.w, obstacle.h, track.ground, track.accent);
 
       drawObeliscoGoal(context, world.length - cam - 82, 330, track.accent);
       drawMilo(context, p.x - cam, p.y, p.invincible, p.powered, p.transformed, p.facing, track.accent);
@@ -372,6 +389,8 @@ export default function Home() {
       for (const block of world.blocks) context.strokeRect(block.x - cam, block.y + block.bump, 34, 34);
       context.strokeStyle = "#ff8fcb";
       for (const enemy of world.enemies) if (enemy.x > -1000) context.strokeRect(enemy.x - cam, enemy.y, enemy.w, enemy.h);
+      context.strokeStyle = "#ff7a2f";
+      for (const obstacle of world.obstacles) context.strokeRect(obstacle.x - cam, obstacle.y, obstacle.w, obstacle.h);
       context.fillStyle = "rgba(0,0,0,0.62)";
       context.fillRect(20, 72, 310, 76);
       drawPixelText(context, `x ${Math.round(p.x)} y ${Math.round(p.y)} vx ${p.vx.toFixed(2)} vy ${p.vy.toFixed(2)}`, 32, 84, 12, "#fff");
@@ -555,6 +574,24 @@ export default function Home() {
         context.fillStyle = "rgba(0,0,0,0.18)";
         context.fillRect(x + tile + 2, y + 8, 4, 4);
         context.fillRect(x + tile + 12, y + 14, 5, 5);
+      }
+    };
+
+    const drawObstacle = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, accent: string) => {
+      context.fillStyle = color;
+      context.fillRect(x, y, w, h);
+      context.fillStyle = "rgba(0,0,0,0.24)";
+      context.fillRect(x + w - 6, y, 6, h);
+      context.fillRect(x, y + h - 6, w, 6);
+      context.fillStyle = "rgba(255,255,255,0.22)";
+      context.fillRect(x, y, w, 5);
+      context.fillRect(x + 4, y + 12, 5, 22);
+      context.fillStyle = accent;
+      context.fillRect(x + 9, y + 16, Math.max(8, w - 18), 5);
+      for (let row = y + 36; row < y + h - 10; row += 22) {
+        context.fillStyle = "rgba(0,0,0,0.18)";
+        context.fillRect(x + 8, row, 5, 5);
+        context.fillRect(x + w - 14, row + 8, 5, 5);
       }
     };
 
@@ -808,9 +845,6 @@ export default function Home() {
             </button>
             <button type="button" onClick={toggleMusic}>
               {musicEnabled ? "Pausar musica" : "Musica"}
-            </button>
-            <button type="button" onClick={() => setDebugMode((value) => !value)}>
-              {debugMode ? "Debug off" : "Debug"}
             </button>
             <button type="button" onClick={() => setLevel((value) => Math.min(unlocked - 1, value + 1))} disabled={level >= unlocked - 1}>
               Siguiente

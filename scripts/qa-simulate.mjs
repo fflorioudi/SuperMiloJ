@@ -24,6 +24,13 @@ function runPlayerRoute(world) {
   let finished = false;
 
   for (let frame = 0; frame < 4000; frame += 1) {
+    const obstacleAhead = world.obstacles.some((obstacle) => obstacle.x > player.x && obstacle.x < player.x + 86 && player.y + player.h > obstacle.y + 8);
+    const platformAhead = world.platforms.some((platform) => platform.y < 455 && platform.x > player.x + 12 && platform.x < player.x + 125 && platform.y > player.y - 150);
+    if (player.grounded && (obstacleAhead || platformAhead)) {
+      player.vy = -10.4;
+      player.grounded = false;
+    }
+
     player.vx += 0.42;
     player.vx = Math.max(-4.35, Math.min(4.35, player.vx));
     player.vy += gravity;
@@ -37,6 +44,21 @@ function runPlayerRoute(world) {
         player.y = platform.y - player.h;
         player.vy = 0;
         player.grounded = true;
+      }
+    }
+
+    for (const obstacle of world.obstacles) {
+      if (!rectsOverlap(player, obstacle)) continue;
+      if (player.vy >= 0 && player.y + player.h - player.vy <= obstacle.y + 5) {
+        player.y = obstacle.y - player.h;
+        player.vy = 0;
+        player.grounded = true;
+      } else if (player.x + player.w / 2 < obstacle.x + obstacle.w / 2) {
+        player.x = obstacle.x - player.w;
+        player.vx = Math.min(0, player.vx);
+      } else {
+        player.x = obstacle.x + obstacle.w;
+        player.vx = Math.max(0, player.vx);
       }
     }
 
@@ -105,6 +127,8 @@ for (let level = 0; level < tracks.length; level += 1) {
   if (world.blocks.some((block) => block.y < 80 || block.y > 430)) issues.push("block outside safe vertical range");
   if (world.notes.some((note) => note.y < 40 || note.y > 460)) issues.push("note outside safe vertical range");
   if (world.enemies.some((enemy) => enemy.y < 120 || enemy.y > 440 || enemy.min < 0 || enemy.max > world.length + 120)) issues.push("enemy outside expected patrol bounds");
+  if (level >= 4 && world.obstacles.length === 0) issues.push("expected mandatory platform obstacles");
+  if (world.obstacles.some((obstacle) => obstacle.y < 300 || obstacle.y + obstacle.h > 500)) issues.push("obstacle outside safe vertical range");
 
   const runs = Array.from({ length: 10 }, () => runPlayerRoute(world));
   const failedRuns = runs.filter((run) => !run.finished || run.falls > 0);

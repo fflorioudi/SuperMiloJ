@@ -112,4 +112,12 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Se agrego modo debug con hitboxes, posicion del jugador, entidades y estado del power-up.
 - Se guarda progreso ampliado: niveles desbloqueados, mejores puntajes, notas recolectadas y musica activada.
 - Se reforzo `npm run qa` con pruebas de colision, respawn, power-up, enemigos y 150 corridas de ruta.
+
+### v9
+
+- Se retiro el boton Debug del HUD principal para que no aparezca como opcion tecnica para el jugador.
+- El modo debug queda oculto para QA con `Shift + H`.
+- Desde niveles medios aparecen muros de escenario que obligan a subir por plataformas.
+- La ruta base ya no es solo caminar en niveles mas avanzados, pero se mantiene testeada para evitar saltos imposibles.
+- El QA ahora simula saltos ante plataformas y obstaculos obligatorios.
 - Milo se reajusta a la plataforma cercana despues de cambiar de tamaño, evitando caidas raras por el hitbox.

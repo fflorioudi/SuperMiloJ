@@ -10,6 +10,8 @@ Fecha: 2026-08-16
 - Se validaron ruta base, suelo continuo, llegada al Obelisco, audios locales, bloques, notas y enemigos.
 - El QA usa el nucleo compartido `src/game/core.js`, el mismo que importa la app.
 - Se agregaron pruebas puntuales para resize de power-up, snap a plataforma, respawn, movimiento enemigo y colisiones rectangulares.
+- Se valida que desde niveles medios existan obstaculos obligatorios que fuerzan rutas por plataformas.
+- La simulacion automatica ahora salta ante plataformas y obstaculos.
 
 ## Resultado
 

@@ -54,6 +54,7 @@ export function makeWorld(level) {
   const blocks = [];
   const mates = [];
   const enemies = [];
+  const obstacles = [];
   const platformCount = 7 + Math.floor(level * 0.62);
   const mateBlockIndexes = new Set(level < 6 ? [3] : level < 11 ? [4] : [3, 9]);
   const groundChunk = length + 360;
@@ -73,6 +74,10 @@ export function makeWorld(level) {
     if (i % 2 === 0) notes.push({ x: x + Math.min(w - 24, 78), y: y - 62, collected: false });
     if (i % 3 === 0 || i > 6) enemies.push(makeEnemy(x + 16, y - 30, level, i));
     if ((i + level) % 3 !== 1) blocks.push({ x: x + Math.min(34, w - 44), y: y - 96, hit: false, bump: 0, hasMate: mateBlockIndexes.has(i) });
+
+    if (level >= 4 && i > 0 && i % 3 === 1) {
+      obstacles.push({ x: x - 36, y: 384 - Math.floor(difficulty * 18), w: 34, h: 84 + Math.floor(difficulty * 18), kind: "wall" });
+    }
   }
 
   for (let i = 0; i < 8 + Math.floor(level / 3); i += 1) {
@@ -81,7 +86,7 @@ export function makeWorld(level) {
 
   enemies.push(makeEnemy(length - 360, 436, level, 99));
   platforms.push({ x: length - 260, y: 412 - Math.floor(difficulty * 52), w: 130 - Math.floor(difficulty * 22), h: 20 });
-  return { platforms, notes, blocks, mates, enemies, length };
+  return { platforms, notes, blocks, mates, enemies, obstacles, length };
 }
 
 export function rectsOverlap(a, b) {
