@@ -9,6 +9,7 @@ import {
   moveEnemy,
   rectsOverlap,
   resolveHorizontalCollision,
+  resolvePlatformLanding,
   resolveVerticalCollision,
   resizePlayerKeepingFeet,
   snapPlayerToFloor,
@@ -44,8 +45,8 @@ function runPlayerRoute(world) {
     player.vy += gravity;
     player.y += player.vy;
     player.grounded = false;
-    const solids = [...world.platforms, ...world.obstacles];
-    for (const solid of solids) resolveVerticalCollision(player, solid, previousY, 12);
+    for (const platform of world.platforms) resolvePlatformLanding(player, platform, previousY, 12);
+    for (const obstacle of world.obstacles) resolveVerticalCollision(player, obstacle, previousY, 12);
 
     if (player.y > height + 80) {
       falls += 1;
@@ -109,11 +110,20 @@ function assertCore(name, condition, details = "") {
 
 {
   const platform = { x: 200, y: 360, w: 120, h: 20 };
-  const player = { ...freshPlayer(), x: 205, y: 330, vx: 7, vy: 3, grounded: false };
+  const player = { ...freshPlayer(), x: 205, y: 295, vx: 0, vy: 5, grounded: false };
   const previousY = player.y;
   player.y += player.vy;
-  resolveVerticalCollision(player, platform, previousY, 12);
+  resolvePlatformLanding(player, platform, previousY, 12);
   assertCore("platforms keep player from sinking visually", player.y + player.h <= platform.y || player.y >= platform.y + platform.h);
+}
+
+{
+  const platform = { x: 200, y: 300, w: 120, h: 20 };
+  const player = { ...freshPlayer(), x: 220, y: 322, vx: 0, vy: -4, grounded: false };
+  const previousY = player.y;
+  player.y += player.vy;
+  resolvePlatformLanding(player, platform, previousY, 12);
+  assertCore("player can pass under platforms without crouch bug", player.y === previousY + player.vy && player.vy === -4);
 }
 
 {

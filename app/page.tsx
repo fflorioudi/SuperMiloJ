@@ -14,6 +14,7 @@ import {
   readProgress,
   rectsOverlap,
   resolveHorizontalCollision,
+  resolvePlatformLanding,
   resolveVerticalCollision,
   resizePlayerKeepingFeet,
   snapPlayerToFloor,
@@ -319,8 +320,8 @@ export default function Home() {
         p.vy += gravity;
         p.y += p.vy;
         p.grounded = false;
-        const solids = [...world.platforms, ...world.obstacles];
-        for (const solid of solids) resolveVerticalCollision(p, solid, previousY, 12);
+        for (const platform of world.platforms) resolvePlatformLanding(p, platform, previousY, 12);
+        for (const obstacle of world.obstacles) resolveVerticalCollision(p, obstacle, previousY, 12);
 
         for (const block of world.blocks) {
           const blockRect = { x: block.x, y: block.y + block.bump, w: 34, h: 34 };
@@ -888,14 +889,15 @@ export default function Home() {
       if (facing < 0) {
         context.translate(x + 39, y);
         context.scale(-1, 1);
-        x = 0;
+      } else {
+        context.translate(x, y);
       }
       for (const [px, py, w, h, colorKey] of frame) {
         context.fillStyle = colorKey === "accent" ? accent : miloPalette[colorKey as keyof typeof miloPalette] ?? colorKey;
-        context.fillRect(x + px, y + py, w, h);
+        context.fillRect(px, py, w, h);
       }
       context.fillStyle = accent;
-      context.fillRect(x + 13, y + 35, 11, 4);
+      context.fillRect(13, 35, 11, 4);
       context.restore();
     };
 
@@ -944,19 +946,40 @@ export default function Home() {
     <main className="game-shell">
       {showGlobalIntro && (
         <div className="global-start">
-          <div className="global-scene" aria-hidden="true">
-            <span className="pixel-sun" />
-            <span className="pixel-obelisco" />
-            <span className="pixel-note note-one" />
-            <span className="pixel-note note-two" />
-            <span className="pixel-milo" />
+          <div className="global-stars" aria-hidden="true" />
+          <div className="global-card">
+            <div className="global-scene" aria-hidden="true">
+              <span className="pixel-skyline skyline-one" />
+              <span className="pixel-skyline skyline-two" />
+              <span className="pixel-sun" />
+              <span className="pixel-obelisco" />
+              <span className="pixel-note note-one" />
+              <span className="pixel-note note-two" />
+              <span className="pixel-mate" />
+              <span className="pixel-milo" />
+            </div>
+            <span className="kicker">La Vida Era Mas Corta</span>
+            <h1>Super Milo J</h1>
+            <p>Un viaje pixelado por 15 canciones, mates raros, notas y checkpoints hasta el Obelisco.</p>
+            <div className="global-badges" aria-label="Resumen del juego">
+              <span>15 niveles</span>
+              <span>Pixel run</span>
+              <span>Modo album</span>
+            </div>
+            <div className="global-actions">
+              <button type="button" onClick={() => setShowGlobalIntro(false)}>
+                Empezar
+              </button>
+              <button type="button" onClick={toggleMusic}>
+                {musicEnabled ? "Musica ON" : "Musica"}
+              </button>
+            </div>
+            <div className="global-trackline" aria-hidden="true">
+              {tracks.slice(0, 5).map((trackItem, index) => (
+                <span key={trackItem.title}>{String(index + 1).padStart(2, "0")}</span>
+              ))}
+            </div>
           </div>
-          <span className="kicker">La Vida Era Mas Corta</span>
-          <h1>Super Milo J</h1>
-          <p>Un viaje pixelado por 15 canciones, mates raros, notas y checkpoints hasta el Obelisco.</p>
-          <button type="button" onClick={() => setShowGlobalIntro(false)}>
-            Empezar
-          </button>
         </div>
       )}
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">

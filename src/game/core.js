@@ -206,6 +206,16 @@ export function resolveVerticalCollision(entity, solid, previousY, minFooting = 
   return "bottom";
 }
 
+export function resolvePlatformLanding(entity, platform, previousY, minFooting = 12) {
+  if (!rectsOverlap(entity, platform) || horizontalOverlap(entity, platform) < minFooting) return null;
+  const previousBottom = previousY + entity.h;
+  if (previousBottom > platform.y + 4 || entity.vy < 0) return null;
+  entity.y = platform.y - entity.h;
+  entity.vy = 0;
+  entity.grounded = true;
+  return "top";
+}
+
 export function resolveSolidCollision(entity, solid, previousX, previousY) {
   if (!rectsOverlap(entity, solid)) return null;
 

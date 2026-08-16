@@ -16,6 +16,7 @@ Fecha: 2026-08-16
 - Se valida que cada nivel tenga checkpoints y que la ruta extendida siga siendo completable.
 - Se valida que los muros no crucen plataformas elevadas ni queden pegados a bordes que formen escalones trampa.
 - Se valida que las patrullas de enemigos no atraviesen muros de escenario.
+- Se valida que Milo pueda pasar por debajo de plataformas one-way sin quedar aplastado ni atrapado.
 
 ## Resultado
 
@@ -24,7 +25,7 @@ Fecha: 2026-08-16
 - Audios detectados: 15/15.
 - Caidas durante la ruta base: 0.
 - Entidades fuera de rango: 0.
-- Core tests exitosos: 9/9.
+- Core tests exitosos: 10/10.
 
 ## Observaciones
 
@@ -34,6 +35,7 @@ Fecha: 2026-08-16
 - Los enemigos rebotan contra muros solidos en vez de atravesarlos.
 - Los niveles son mas largos e incorporan checkpoints para sostener mejor sesiones con musica.
 - Los fondos y la presentacion avanzaron a una version mas visual, con portada global de **Super Milo J**.
+- Las plataformas elevadas funcionan como piso al caer desde arriba, no como techo al pasar por debajo.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba

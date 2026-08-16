@@ -57,24 +57,64 @@ button {
   padding: 24px;
   text-align: center;
   background:
-    linear-gradient(rgba(13, 14, 20, 0.52), rgba(13, 14, 20, 0.86)),
+    radial-gradient(circle at 50% 18%, rgba(255, 206, 74, 0.12), transparent 30%),
+    linear-gradient(rgba(13, 14, 20, 0.34), rgba(13, 14, 20, 0.9)),
     linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
     linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
     #121420;
   background-size: auto, 24px 24px, 24px 24px, auto;
 }
 
+.global-start::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 7px);
+}
+
+.global-stars {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle, rgba(255,255,255,0.44) 0 2px, transparent 2px) 13% 17% / 160px 110px,
+    radial-gradient(circle, rgba(115,240,189,0.5) 0 2px, transparent 2px) 74% 28% / 190px 130px,
+    radial-gradient(circle, rgba(255,206,74,0.5) 0 2px, transparent 2px) 36% 72% / 170px 120px;
+  animation: star-drift 9s steps(6) infinite;
+}
+
+.global-card {
+  position: relative;
+  z-index: 1;
+  width: min(980px, 92vw);
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 22px clamp(16px, 4vw, 42px) 26px;
+  border: 4px solid var(--line);
+  background: rgba(13, 14, 20, 0.72);
+  box-shadow: 0 0 0 4px #090a0e, 12px 12px 0 rgba(0,0,0,0.42), inset 0 0 0 2px rgba(255,255,255,0.06);
+}
+
 .global-start h1 {
   margin: 0;
   color: var(--hot);
   font-size: clamp(42px, 9vw, 118px);
-  text-shadow: 7px 7px 0 #090a0e;
+  line-height: 0.9;
+  text-shadow: 7px 7px 0 #090a0e, 12px 12px 0 rgba(115, 240, 189, 0.12);
 }
 
 .global-start p {
   max-width: 720px;
   color: #f7f3df;
   line-height: 1.45;
+}
+
+.global-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
 }
 
 .global-start button {
@@ -87,20 +127,65 @@ button {
   box-shadow: inset -4px -4px 0 rgba(0, 0, 0, 0.32), inset 4px 4px 0 rgba(255, 255, 255, 0.08), 8px 8px 0 #090a0e;
 }
 
+.global-badges,
+.global-trackline {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.global-badges span,
+.global-trackline span {
+  border: 2px solid var(--line);
+  background: var(--panel-2);
+  color: var(--ink);
+  padding: 7px 10px;
+  box-shadow: inset -2px -2px 0 rgba(0,0,0,0.24), inset 2px 2px 0 rgba(255,255,255,0.06);
+}
+
+.global-trackline span {
+  color: var(--mint);
+  min-width: 42px;
+}
+
 .global-scene {
   position: relative;
   width: min(760px, 86vw);
-  height: 190px;
+  height: 220px;
   border-bottom: 18px solid #5d7f42;
   overflow: hidden;
+  background:
+    linear-gradient(rgba(255,255,255,0.05), transparent 46%),
+    linear-gradient(180deg, #202938, #3b245d);
+  box-shadow: inset 0 -28px 0 rgba(0,0,0,0.18);
 }
 
 .pixel-sun,
 .pixel-obelisco,
 .pixel-note,
-.pixel-milo {
+.pixel-milo,
+.pixel-mate,
+.pixel-skyline {
   position: absolute;
   display: block;
+}
+
+.pixel-skyline {
+  bottom: 0;
+  width: 160px;
+  height: 94px;
+  background: rgba(0,0,0,0.24);
+  box-shadow: 52px -36px 0 rgba(0,0,0,0.2), 104px -12px 0 rgba(0,0,0,0.24), 180px -52px 0 rgba(0,0,0,0.18);
+}
+
+.skyline-one {
+  left: 18px;
+}
+
+.skyline-two {
+  right: 246px;
+  transform: scaleX(-1);
 }
 
 .pixel-sun {
@@ -126,6 +211,7 @@ button {
   height: 34px;
   background: var(--mint);
   box-shadow: 8px 0 0 var(--mint), -12px 26px 0 8px var(--mint);
+  animation: note-bob 1.4s steps(2) infinite;
 }
 
 .note-one {
@@ -150,6 +236,31 @@ button {
     linear-gradient(90deg, #2d5d86 0 28%, #f0f0f0 28% 70%, #2d5d86 70%),
     #d9a276;
   box-shadow: 0 52px 0 -8px #1f2a44, 11px 52px 0 -8px #1f2a44, -4px 62px 0 -8px #efefef, 15px 62px 0 -8px #efefef;
+  animation: milo-idle 0.9s steps(2) infinite;
+}
+
+.pixel-mate {
+  left: 58%;
+  bottom: 42px;
+  width: 22px;
+  height: 20px;
+  background: #5a3325;
+  box-shadow: 3px -5px 0 #8a5638, 5px -2px 0 #74c476, 17px -18px 0 -7px #d7d2c8, 21px -21px 0 -8px #d7d2c8;
+}
+
+@keyframes star-drift {
+  from { transform: translateY(0); }
+  to { transform: translateY(18px); }
+}
+
+@keyframes note-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes milo-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 
 .stage-panel {

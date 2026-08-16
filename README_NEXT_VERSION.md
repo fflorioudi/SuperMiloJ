@@ -9,6 +9,7 @@
 - Hecho: agregar pruebas automaticas mas profundas de colisiones, respawn, power-ups, enemigos y final de nivel.
 - Hecho: reforzar hitbox de plataformas, muros y enemigos para evitar rendijas y paredes atravesables.
 - Hecho: separar render del protagonista en spritesheet logica con frames animados.
+- Hecho: convertir plataformas elevadas en one-way reales para evitar bug al pasar por debajo.
 
 ## Jugabilidad
 
@@ -28,6 +29,7 @@
 - Hecho: crear animaciones separadas para idle, correr, saltar y recibir golpe.
 - Hecho: mejorar los fondos con mas capas parallax y objetos identificables por cancion.
 - Hecho: agregar pantalla de inicio global de **Super Milo J**.
+- Hecho: mejorar la portada global con escena arcade animada y elementos del juego.
 - Pendiente: agregar seleccion de nivel, volumen y estado de audio dentro de la pantalla global.
 - Pendiente: animaciones especiales para tomar mate y llegar al Obelisco.
 

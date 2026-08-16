@@ -148,3 +148,11 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Los muros de escenario ya no se generan cruzando plataformas ni pegados a bordes que formen escalones trampa.
 - Las patrullas de enemigos se recortan automaticamente si un muro podria dejarlos atrapados.
 - El QA valida que no haya plataformas atravesando muros ni enemigos patrullando contra obstaculos.
+
+### v13
+
+- Se corrigio el bug de invisibilidad al caminar hacia atras: el espejado del sprite ya no duplica la coordenada vertical.
+- Las plataformas elevadas ahora son one-way reales: Milo aterriza desde arriba, pero puede pasar por debajo sin agacharse ni quedar atrapado.
+- Los muros conservan colision solida completa, separados de las plataformas.
+- Se mejoro la pantalla global de **Super Milo J** con escena arcade, cielo animado, ciudad, Obelisco, mate, notas y botones mas presentes.
+- El QA suma una prueba especifica para pasar por debajo de plataformas sin bug visual.
