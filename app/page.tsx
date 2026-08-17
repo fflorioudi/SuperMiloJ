@@ -31,6 +31,15 @@ type Enemy = World["enemies"][number];
 type SpriteRect = [number, number, number, number, string];
 type SpriteFrame = SpriteRect[];
 
+const titleArt = "/art/super-milo-title.png";
+const backgroundArt = ["/art/bg-barrio.png", "/art/bg-ciudad-noche.png", "/art/bg-monte-rio.png"];
+
+function backgroundForLevel(levelIndex: number) {
+  if (levelIndex < 5) return backgroundArt[0];
+  if (levelIndex < 10) return backgroundArt[1];
+  return backgroundArt[2];
+}
+
 const miloPalette = {
   hair: "#101010",
   skin: "#d9a276",
@@ -133,6 +142,7 @@ export default function Home() {
   const loop = useRef<number | null>(null);
   const tick = useRef(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const artImages = useRef<Record<string, HTMLImageElement>>({});
   const worldRef = useRef<World>(makeWorld(0));
   const player = useRef<Player>(freshPlayer());
   const [level, setLevel] = useState(0);
@@ -157,6 +167,11 @@ export default function Home() {
     setProgress(saved);
     setUnlocked(Math.max(1, Math.min(tracks.length, saved.unlocked)));
     setMusicEnabled(Boolean(saved.musicEnabled));
+    [titleArt, ...backgroundArt].forEach((src) => {
+      const image = new Image();
+      image.src = src;
+      artImages.current[src] = image;
+    });
   }, []);
 
   const persistProgress = (nextProgress: ReturnType<typeof defaultProgress>) => {
@@ -496,32 +511,69 @@ export default function Home() {
     const drawBackdrop = (context: CanvasRenderingContext2D, levelIndex: number, track: Track, cam: number) => {
       context.fillStyle = track.sky;
       context.fillRect(0, 0, width, height);
-      const drift = cam * 0.16;
+      drawArtBackdrop(context, backgroundForLevel(levelIndex), cam);
+      drawLevelAtmosphere(context, levelIndex, cam, track);
+    };
 
-      context.fillStyle = "rgba(255,255,255,0.12)";
-      for (let i = 0; i < 10; i += 1) {
-        const x = ((i * 173 - drift) % 1100) - 80;
-        context.fillRect(x, 44 + (i % 5) * 28, 38, 8);
-        context.fillRect(x + 10, 36 + (i % 5) * 28, 54, 8);
-      }
+    const drawArtBackdrop = (context: CanvasRenderingContext2D, src: string, cam: number) => {
+      const image = artImages.current[src];
+      if (!image?.complete || image.naturalWidth === 0) return;
+      const cropDrift = Math.floor((cam * 0.045) % Math.max(1, image.naturalWidth * 0.08));
+      const sourceX = Math.min(image.naturalWidth * 0.08, cropDrift);
+      const sourceW = image.naturalWidth - image.naturalWidth * 0.08;
+      context.drawImage(image, sourceX, 0, sourceW, image.naturalHeight, 0, 0, width, height);
+      context.fillStyle = "rgba(8, 9, 14, 0.08)";
+      context.fillRect(0, 0, width, height);
+    };
 
+    const drawLevelAtmosphere = (context: CanvasRenderingContext2D, levelIndex: number, cam: number, track: Track) => {
       const motif = levelIndex % tracks.length;
-      drawAlbumParallax(context, motif, cam, track);
-      if (motif === 0) drawSkinLayers(context, cam, track.accent);
-      if (motif === 1) drawPatio(context, cam);
-      if (motif === 2) drawCity(context, cam, track.accent);
-      if (motif === 3) drawSunset(context, cam);
-      if (motif === 4) drawSolarRoad(context, cam);
-      if (motif === 5) drawFolkloreNight(context, cam);
-      if (motif === 6) drawStudio(context, cam, track.accent);
+      if (motif === 3 || motif === 4) drawDust(context, cam, track.accent);
+      if (motif === 5 || motif === 6 || motif === 8 || motif === 9) drawStageGlow(context, cam, track.accent);
       if (motif === 7) drawRain(context, cam, track.accent);
-      if (motif === 8) drawMemoryFrames(context, cam);
-      if (motif === 9) drawBoilingKitchen(context, cam);
-      if (motif === 10) drawHourglass(context, cam, track.accent);
-      if (motif === 11) drawFootball(context, cam);
-      if (motif === 12) drawInvisibleWoods(context, cam);
-      if (motif === 13) drawFireflies(context, cam);
-      if (motif === 14) drawRiver(context, cam);
+      if (motif === 10) drawClockShards(context, cam, track.accent);
+      if (motif === 11) drawFieldLights(context, cam);
+      if (motif === 12 || motif === 13 || motif === 14) drawFireflies(context, cam);
+    };
+
+    const drawDust = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
+      context.fillStyle = accent;
+      for (let i = 0; i < 20; i += 1) {
+        const x = (i * 91 - cam * 0.18 + tick.current * 0.18) % width;
+        const y = 120 + ((i * 43 + tick.current) % 230);
+        context.globalAlpha = 0.16;
+        context.fillRect(x, y, 3, 3);
+      }
+      context.globalAlpha = 1;
+    };
+
+    const drawStageGlow = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
+      context.fillStyle = "rgba(255,255,255,0.08)";
+      for (let i = 0; i < 4; i += 1) {
+        const x = ((i * 260 - cam * 0.12) % 1100) - 90;
+        context.fillRect(x, 0, 36, height);
+        context.fillStyle = `${accent}44`;
+        context.fillRect(x + 8, 120, 12, 260);
+        context.fillStyle = "rgba(255,255,255,0.08)";
+      }
+    };
+
+    const drawClockShards = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
+      context.fillStyle = accent;
+      for (let i = 0; i < 9; i += 1) {
+        const x = ((i * 137 - cam * 0.08) % 1050) - 30;
+        const y = 86 + (i % 4) * 46;
+        context.fillRect(x, y, 22, 4);
+        context.fillRect(x + 9, y - 8, 4, 20);
+      }
+    };
+
+    const drawFieldLights = (context: CanvasRenderingContext2D, cam: number) => {
+      context.fillStyle = "rgba(255,255,210,0.16)";
+      for (let i = 0; i < 3; i += 1) {
+        const x = ((i * 340 - cam * 0.1) % 1120) - 80;
+        context.fillRect(x, 90, 90, 190);
+      }
     };
 
     const drawAlbumParallax = (context: CanvasRenderingContext2D, motif: number, cam: number, track: Track) => {
@@ -970,18 +1022,7 @@ export default function Home() {
         <div className="global-start">
           <div className="global-stars" aria-hidden="true" />
           <div className="global-card">
-            <div className="global-scene" aria-hidden="true">
-              <span className="pixel-skyline skyline-one" />
-              <span className="pixel-skyline skyline-two" />
-              <span className="pixel-sun" />
-              <span className="pixel-obelisco" />
-              <span className="pixel-note note-one" />
-              <span className="pixel-note note-two" />
-              <span className="pixel-mate" />
-              <span className="pixel-milo" />
-              <span className="pixel-jacket" />
-              <span className="pixel-record" />
-            </div>
+            <div className="global-scene" aria-hidden="true" />
             <span className="kicker">La Vida Era Mas Corta</span>
             <h1>Super Milo J</h1>
             <p>De Milo chico al Milo de ahora: 15 canciones, barrio, memoria, mates raros y una carrera hasta el Obelisco.</p>

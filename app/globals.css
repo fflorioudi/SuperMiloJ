@@ -57,10 +57,11 @@ button {
   padding: 24px;
   text-align: center;
   background:
-    radial-gradient(circle at 50% 14%, rgba(255, 206, 74, 0.16), transparent 28%),
-    linear-gradient(180deg, rgba(18, 20, 32, 0.95), rgba(10, 11, 17, 0.96)),
+    radial-gradient(circle at 50% 12%, rgba(255, 206, 74, 0.18), transparent 24%),
+    radial-gradient(circle at 22% 32%, rgba(115, 240, 189, 0.09), transparent 26%),
+    linear-gradient(180deg, rgba(15, 17, 27, 0.98), rgba(7, 8, 13, 0.98)),
     #121420;
-  background-size: auto, 24px 24px, 24px 24px, auto;
+  background-size: auto, auto, auto;
 }
 
 .global-start::after {
@@ -84,14 +85,14 @@ button {
 .global-card {
   position: relative;
   z-index: 1;
-  width: min(980px, 92vw);
+  width: min(1100px, 92vw);
   display: grid;
   justify-items: center;
-  gap: 14px;
-  padding: 22px clamp(16px, 4vw, 42px) 26px;
+  gap: 12px;
+  padding: 18px clamp(14px, 3vw, 34px) 24px;
   border: 4px solid var(--line);
   background:
-    linear-gradient(rgba(14, 16, 24, 0.78), rgba(14, 16, 24, 0.9)),
+    linear-gradient(rgba(8, 9, 14, 0.84), rgba(8, 9, 14, 0.95)),
     repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 5px);
   box-shadow: 0 0 0 4px #090a0e, 14px 14px 0 rgba(0,0,0,0.44), inset 0 0 0 2px rgba(255,255,255,0.06);
 }
@@ -138,14 +139,30 @@ button {
 
 .global-scene {
   position: relative;
-  width: min(760px, 86vw);
-  height: 220px;
-  border-bottom: 18px solid #5f4a36;
+  width: min(980px, 86vw);
+  aspect-ratio: 16 / 7;
+  min-height: 260px;
+  border: 4px solid #353a50;
   overflow: hidden;
   background:
-    radial-gradient(circle at 74% 24%, rgba(255,206,74,0.18), transparent 14%),
-    linear-gradient(180deg, #1e2433 0 46%, #2b2036 46% 72%, #241a2a 72%);
-  box-shadow: inset 0 -34px 0 rgba(0,0,0,0.18), inset 0 0 0 3px rgba(255,255,255,0.06);
+    linear-gradient(180deg, rgba(5, 6, 10, 0.02), rgba(5, 6, 10, 0.2)),
+    url("/art/super-milo-title.png") center / cover no-repeat;
+  box-shadow:
+    0 0 0 4px #090a0e,
+    12px 12px 0 rgba(0,0,0,0.42),
+    inset 0 0 0 2px rgba(255,255,255,0.08);
+  image-rendering: pixelated;
+}
+
+.global-scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.06), transparent 14%, transparent 86%, rgba(0,0,0,0.22)),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 5px);
+  mix-blend-mode: screen;
 }
 
 .pixel-sun,

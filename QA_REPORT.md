@@ -18,6 +18,7 @@ Fecha: 2026-08-16
 - Se valida que las patrullas de enemigos no atraviesen muros de escenario.
 - Se valida que Milo pueda pasar por debajo de plataformas one-way sin quedar aplastado ni atrapado.
 - Se valida que una plataforma bloquee el dano de un enemigo ubicado arriba cuando Milo esta debajo.
+- Se valida la version con portada y fondos PNG generados dentro de `public/art`.
 
 ## Resultado
 
@@ -36,6 +37,7 @@ Fecha: 2026-08-16
 - Los enemigos rebotan contra muros solidos en vez de atravesarlos.
 - Los niveles son mas largos e incorporan checkpoints para sostener mejor sesiones con musica.
 - Los fondos y la presentacion avanzaron a una version mas visual, con portada global de **Super Milo J**.
+- La portada y tres familias de fondos dejaron de depender de decorado rectangular y ahora usan PNG pixel art como base.
 - Las plataformas elevadas funcionan como piso al caer desde arriba, no como techo al pasar por debajo.
 - Los enemigos sobre plataformas ya no golpean a Milo a traves del piso.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.

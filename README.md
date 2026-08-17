@@ -165,3 +165,11 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Se corrigio el dano injusto de enemigos sobre plataformas: si una plataforma separa a Milo del enemigo, no hay golpe por tocar el gorro desde abajo.
 - Los fondos reducen bloques gigantes y agregan siluetas pixeladas mas suaves, ventanas y textura de escena.
 - El QA suma una prueba especifica para enemigo arriba de plataforma y Milo debajo.
+
+### v15
+
+- Se reemplazo la escena cuadrada de portada por un PNG generado para **Super Milo J**, con Buenos Aires, Obelisco, mate, vinilo, campera marron y bandera argentina.
+- Se agregaron fondos PNG generados para tres familias visuales: barrio/patio, ciudad nocturna/estudio y monte/rio/cancha.
+- El canvas ahora usa esos fondos como base ilustrada y encima suma atmosfera animada por nivel: lluvia, polvo, luces, luciernagas y detalles musicales.
+- Se redujo la dependencia de rectangulos gigantes en fondos y portada para que el juego se sienta mas como pixel art armado con intencion.
+- Se mantuvo el parche de hitbox para que un enemigo sobre plataforma no golpee a Milo desde abajo.

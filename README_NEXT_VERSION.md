@@ -32,8 +32,10 @@
 - Hecho: agregar pantalla de inicio global de **Super Milo J**.
 - Hecho: mejorar la portada global con escena arcade animada y elementos del juego.
 - Hecho: sacar numeros confusos de portada y orientar la escena a Milo J/album.
-- Pendiente: reemplazar fondos generativos por escenas pixel art mas cuidadas por cancion.
-- Pendiente: crear tilesets de fondo por tema: barrio, estudio, lluvia, cancha, monte, rio y Obelisco.
+- Hecho: reemplazar la portada y los fondos base por PNG pixel art generados.
+- Hecho: sumar familias visuales de fondo para barrio, ciudad nocturna/estudio y monte/rio/cancha.
+- Pendiente: crear una escena propia para cada una de las 15 canciones, no solo familias visuales.
+- Pendiente: crear tilesets de objetos por tema: barrio, estudio, lluvia, cancha, monte, rio y Obelisco.
 - Pendiente: agregar seleccion de nivel, volumen y estado de audio dentro de la pantalla global.
 - Pendiente: animaciones especiales para tomar mate y llegar al Obelisco.
 
