@@ -69,15 +69,27 @@ export function makeEnemy(x, y, level, seed) {
     barrel: speedBase * 1.05,
   };
   const speed = speedByType[type];
+  const hitboxes = {
+    cassette: { w: 24, h: 22 },
+    tv: { w: 24, h: 24 },
+    ghost: { w: 22, h: 26 },
+    mic: { w: 28, h: 24 },
+    firefly: { w: 22, h: 22 },
+    barrel: { w: 24, h: 24 },
+  };
+  const hitbox = hitboxes[type];
+  const spawnBottom = y + 30;
+  const groundedY = spawnBottom - hitbox.h;
+  const startY = pattern === "fly" || pattern === "firefly" ? y - 6 : groundedY;
   return {
     x,
-    y,
-    baseY: y,
+    y: startY,
+    baseY: startY,
     vx: speed,
     min: x - 22,
     max: x + 82 + level * 5 + ((seed * 11) % 42),
-    w: pattern === "charge" ? 38 : pattern === "firefly" || pattern === "fly" ? 34 : 30,
-    h: pattern === "firefly" || pattern === "fly" ? 28 : 30,
+    w: hitbox.w,
+    h: hitbox.h,
     kind: (seed + level) % 4,
     pattern,
     type,

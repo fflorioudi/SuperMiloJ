@@ -39,7 +39,16 @@ const miloSpriteSheet = "/art/milo-spritesheet.png";
 const terrainSpriteSheet = "/art/terrain-spritesheet.png";
 const enemySpriteSheet = "/art/enemy-spritesheet.png";
 const platformSpriteSheet = "/art/platform-spritesheet.png";
-const enemyAnimatedSpriteSheet = "/art/enemy-animated-spritesheet.png";
+const noteSpriteSheet = "/art/note-spritesheet.png";
+const groundSpriteSheet = "/art/ground-spritesheet.png";
+const enemySpriteSheets = {
+  cassette: "/art/enemies/enemy-cassette.png",
+  ghost: "/art/enemies/enemy-ghost.png",
+  mic: "/art/enemies/enemy-mic.png",
+  firefly: "/art/enemies/enemy-firefly.png",
+  tv: "/art/enemies/enemy-tv.png",
+  barrel: "/art/enemies/enemy-barrel.png",
+} as const;
 const miloSpriteTrims = [
   [
     { x: 96, y: 123, w: 107, h: 257 },
@@ -218,7 +227,17 @@ export default function Home() {
     setProgress(saved);
     setUnlocked(Math.max(1, Math.min(tracks.length, saved.unlocked)));
     setMusicEnabled(Boolean(saved.musicEnabled));
-    [titleArt, miloSpriteSheet, terrainSpriteSheet, enemySpriteSheet, platformSpriteSheet, enemyAnimatedSpriteSheet, ...backgroundArt].forEach((src) => {
+    [
+      titleArt,
+      miloSpriteSheet,
+      terrainSpriteSheet,
+      enemySpriteSheet,
+      platformSpriteSheet,
+      noteSpriteSheet,
+      groundSpriteSheet,
+      ...Object.values(enemySpriteSheets),
+      ...backgroundArt,
+    ].forEach((src) => {
       const image = new Image();
       image.src = src;
       artImages.current[src] = image;
@@ -532,10 +551,10 @@ export default function Home() {
         if (block.bump < 0) block.bump += 1;
         drawQuestionBlock(context, block.x - cam, block.y + block.bump, block.hit, block.hasMate, track.accent);
       }
-      for (const note of world.notes) if (!note.collected) drawNote(context, note.x - cam, note.y, track.accent);
+      for (const note of world.notes) if (!note.collected) drawNote(context, note.x - cam, note.y, track.accent, isTutorial ? -1 : level);
       for (const mate of world.mates) if (!mate.collected) drawMate(context, mate.x - cam, mate.y);
       for (const enemy of world.enemies) if (enemy.x > -1000) drawEnemy(context, enemy, enemy.x - cam, enemy.y, enemy.w, enemy.h, track.enemy);
-      for (const obstacle of world.obstacles) drawObstacle(context, obstacle.x - cam, obstacle.y, obstacle.w, obstacle.h, track.ground, track.accent);
+      for (const obstacle of world.obstacles) drawObstacle(context, obstacle.x - cam, obstacle.y, obstacle.w, obstacle.h, track.ground, track.accent, obstacle.x);
       for (const checkpoint of world.checkpoints) drawCheckpoint(context, checkpoint.x - cam, checkpoint.y, checkpoint.active, track.accent);
 
       drawObeliscoGoal(context, world.length - cam - 82, 330, track.accent);
@@ -1030,6 +1049,28 @@ export default function Home() {
     };
 
     const drawSolidGround = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, levelIndex: number) => {
+      const image = artImages.current[groundSpriteSheet];
+      if (image?.complete && image.naturalWidth > 0) {
+        const motif = levelIndex < 0 ? 0 : levelIndex % tracks.length;
+        const col = motif === 7 ? 1 : motif >= 12 ? 2 : motif >= 9 ? 3 : 0;
+        const columns = 4;
+        const sourceW = image.naturalWidth / columns;
+        const sourceH = image.naturalHeight;
+        const sx = col * sourceW;
+        context.save();
+        context.imageSmoothingEnabled = false;
+        context.fillStyle = color;
+        context.fillRect(x, y, w, h);
+        const tileW = 128;
+        for (let dx = 0; dx < w; dx += tileW) {
+          const dw = Math.min(tileW, w - dx);
+          context.drawImage(image, sx, 0, sourceW, sourceH, Math.round(x + dx), Math.round(y - 4), Math.ceil(dw), Math.round(Math.max(64, h + 8)));
+        }
+        context.fillStyle = "rgba(255,255,255,0.18)";
+        context.fillRect(Math.round(x), Math.round(y), Math.round(w), 2);
+        context.restore();
+        return;
+      }
       context.fillStyle = color;
       context.fillRect(x, y, w, h);
       context.fillStyle = "rgba(255,255,255,0.18)";
@@ -1061,15 +1102,15 @@ export default function Home() {
       context.fillRect(Math.round(x + 8), Math.round(y + 23), Math.max(8, Math.round(w - 16)), 3);
     };
 
-    const drawObstacle = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, accent: string) => {
+    const drawObstacle = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, accent: string, worldX: number) => {
       const image = artImages.current[terrainSpriteSheet];
       if (image?.complete && image.naturalWidth > 0) {
-        const col = Math.abs(Math.floor(x / 40)) % 4;
+        const col = Math.abs(Math.floor(worldX / 180)) % 4;
         context.save();
         context.shadowColor = "rgba(0,0,0,0.35)";
         context.shadowBlur = 8;
         context.shadowOffsetY = 4;
-        drawTerrainTile(context, image, col, 2, x - 14, y - 18, w + 28, h + 26, Math.max(70, w + 28));
+        drawTerrainTile(context, image, col, 2, x - 10, y - 12, w + 20, h + 18, Math.max(70, w + 20));
         context.restore();
         return;
       }
@@ -1138,7 +1179,21 @@ export default function Home() {
       context.fillRect(x + 15, y + 28, 5, 4);
     };
 
-    const drawNote = (context: CanvasRenderingContext2D, x: number, y: number, color: string) => {
+    const drawNote = (context: CanvasRenderingContext2D, x: number, y: number, color: string, levelIndex: number) => {
+      const image = artImages.current[noteSpriteSheet];
+      if (image?.complete && image.naturalWidth > 0) {
+        const columns = 4;
+        const sourceW = image.naturalWidth / columns;
+        const sourceH = image.naturalHeight;
+        const col = levelIndex < 0 ? 0 : levelIndex % columns;
+        context.save();
+        context.imageSmoothingEnabled = false;
+        context.fillStyle = "rgba(0,0,0,0.24)";
+        context.fillRect(Math.round(x - 8), Math.round(y + 23), 24, 5);
+        context.drawImage(image, col * sourceW, 0, sourceW, sourceH, Math.round(x - 7), Math.round(y - 5), 30, 36);
+        context.restore();
+        return;
+      }
       context.fillStyle = "rgba(0,0,0,0.24)";
       context.fillRect(x - 9, y + 20, 18, 6);
       context.fillStyle = color;
@@ -1164,30 +1219,41 @@ export default function Home() {
     };
 
     const drawEnemy = (context: CanvasRenderingContext2D, enemy: Enemy, x: number, y: number, w: number, h: number, color: string) => {
-      const image = artImages.current[enemyAnimatedSpriteSheet];
+      const type = String(enemy.type) as keyof typeof enemySpriteSheets;
+      const image = artImages.current[enemySpriteSheets[type] ?? enemySpriteSheets.cassette];
       if (image?.complete && image.naturalWidth > 0) {
-        const typeRows: Record<string, number> = { cassette: 0, ghost: 1, mic: 2, firefly: 3, tv: 4, barrel: 5 };
-        const row = typeRows[String(enemy.type)] ?? 0;
-        const frame = enemy.pattern === "charge" && Math.floor(enemy.phase / 20) % 3 === 0 ? 3 : Math.floor(enemy.phase / 10) % 3;
+        const visuals: Record<string, { drawW: number; drawH: number; foot: number; shadow: number }> = {
+          cassette: { drawW: 40, drawH: 36, foot: 4, shadow: 28 },
+          tv: { drawW: 42, drawH: 38, foot: 5, shadow: 28 },
+          ghost: { drawW: 46, drawH: 48, foot: 0, shadow: 22 },
+          mic: { drawW: 54, drawH: 42, foot: 4, shadow: 34 },
+          firefly: { drawW: 46, drawH: 44, foot: 0, shadow: 20 },
+          barrel: { drawW: 42, drawH: 38, foot: 5, shadow: 30 },
+        };
+        const visual = visuals[type] ?? visuals.cassette;
+        let frame = Math.floor(enemy.phase / 10) % 3;
+        if (enemy.pattern === "charge") frame = Math.floor(enemy.phase / enemy.period) % 3 === 1 ? 3 : 1 + (Math.floor(enemy.phase / 7) % 2);
+        if (enemy.pattern === "hop") frame = Math.abs(enemy.y - enemy.baseY) > 5 ? 2 : Math.floor(enemy.phase / 16) % 2;
+        if (enemy.pattern === "fly" || enemy.pattern === "firefly") frame = Math.floor(enemy.phase / 22) % 5 === 0 ? 3 : 1 + (Math.floor(enemy.phase / 7) % 2);
+        if (enemy.pattern === "roll") frame = Math.floor(enemy.phase / 6) % 3;
         const columns = 4;
-        const rows = 6;
         const sourceW = image.naturalWidth / columns;
-        const sourceH = image.naturalHeight / rows;
-        const drawW = enemy.pattern === "charge" ? 52 : enemy.pattern === "firefly" || enemy.pattern === "fly" ? 48 : 42;
-        const drawH = enemy.pattern === "firefly" || enemy.pattern === "fly" ? 48 : 44;
+        const sourceH = image.naturalHeight;
+        const drawW = visual.drawW;
+        const drawH = visual.drawH;
         const drawX = Math.round(x + w / 2 - drawW / 2);
-        const drawY = Math.round(y + h - drawH + 4);
+        const drawY = Math.round(y + h - drawH + visual.foot);
         context.save();
         context.imageSmoothingEnabled = false;
         context.fillStyle = "rgba(0,0,0,0.28)";
-        context.fillRect(drawX + 7, y + h - 2, drawW - 14, 6);
+        context.fillRect(Math.round(x + w / 2 - visual.shadow / 2), Math.round(y + h - 2), visual.shadow, 5);
         const direction = enemy.vx < 0 ? -1 : 1;
         if (direction < 0) {
           context.translate(drawX + drawW, drawY);
           context.scale(-1, 1);
-          context.drawImage(image, frame * sourceW, row * sourceH, sourceW, sourceH, 0, 0, drawW, drawH);
+          context.drawImage(image, frame * sourceW, 0, sourceW, sourceH, 0, 0, drawW, drawH);
         } else {
-          context.drawImage(image, frame * sourceW, row * sourceH, sourceW, sourceH, drawX, drawY, drawW, drawH);
+          context.drawImage(image, frame * sourceW, 0, sourceW, sourceH, drawX, drawY, drawW, drawH);
         }
         context.restore();
         return;
@@ -1388,7 +1454,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v23</span>
+            <span className="kicker">Super Milo J v24</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">

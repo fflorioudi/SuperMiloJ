@@ -1,6 +1,6 @@
 # QA Report
 
-Fecha: 2026-08-16
+Fecha: 2026-08-17
 
 ## Alcance
 
@@ -25,6 +25,8 @@ Fecha: 2026-08-16
 - Se valida rareza de mates, cantidad minima de notas, plataformas elevadas, enemigos, obstaculos y checkpoints.
 - Se simulan patrullas largas de enemigos contra muros para detectar penetraciones o rebotes rotos.
 - Se valida que el tutorial no tenga audio de album, sea corto, tenga un mate, un checkpoint, un enemigo y ruta completada.
+- Se valida la tanda v24 con spritesheets separados por enemigo, notas nuevas y textura de piso continua.
+- Se valida que las patrullas horizontales sigan dentro del mundo y que los patrones verticales de vuelo/salto usen rangos esperados.
 
 ## Resultado
 
@@ -34,7 +36,7 @@ Fecha: 2026-08-16
 - Audios detectados: 15/15.
 - Caidas durante la ruta base: 0.
 - Entidades fuera de rango: 0.
-- Core tests exitosos: 15/15.
+- Core tests y assets requeridos: todos exitosos.
 
 ## Observaciones
 
@@ -57,6 +59,8 @@ Fecha: 2026-08-16
 - El spritesheet v19 se recorta por 8 columnas x 2 filas segun sus dimensiones reales, con fondo transparente para evitar rectangulos alrededor del personaje.
 - La v22 apaga overlays animados de fondo y renderiza plataformas, obstaculos y enemigos desde PNGs para que el arte acompañe mejor los paisajes.
 - La v23 vuelve a dejar el piso como bloque solido continuo, reserva PNGs para plataformas elevadas y agrega enemigos animados con patrones por tipo.
+- La v24 separa cada enemigo en su propio spritesheet, ajusta hitboxes por tipo y agrega sprites nuevos para notas y piso.
+- Los muros ya no toman su variante visual desde la posicion de camara, por lo que quedan estaticos mientras se juega.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba

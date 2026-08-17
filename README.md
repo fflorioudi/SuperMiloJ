@@ -242,3 +242,15 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Los enemigos ahora tienen tipos y patrones propios: cassette caminante, TV saltarin, fantasma volador, microfono rapido, luciernaga con vuelo organico y barril rodante.
 - El generador de enemigos varia velocidad, fase, amplitud y periodo para que no todos revelen el mismo patron al mismo tiempo.
 - Los enemigos voladores ya no usan el mismo rebote contra paredes que los enemigos terrestres.
+
+### v24
+
+- El muro/obstaculo dejo de cambiar visualmente con la camara: ahora el sprite se decide con la posicion real del mundo y queda estatico.
+- Se reemplazo el spritesheet combinado por un spritesheet separado para cada enemigo en `public/art/enemies`.
+- Cada enemigo tiene frames propios: cassette caminante, TV saltarin, fantasma volador, microfono de carga, luciernaga y barril rodante.
+- Los spritesheets nuevos se recortan por alfa para que no arrastren margen transparente gigante ni queden chicos en pantalla.
+- Se achicaron y ajustaron las hitbox fisicas por tipo de enemigo para que el dano encaje mejor con el PNG visible.
+- El render de enemigos centra el dibujo sobre la hitbox y usa sombras mas chicas, evitando golpes injustos por bordes transparentes o adornos.
+- Se agrego `public/art/note-spritesheet.png` para notas musicales mas pulidas y con variantes de color.
+- Se agrego `public/art/ground-spritesheet.png` para mejorar el piso sin romper la regla de suelo solido continuo.
+- El QA valida que existan todos los sprites separados, el nuevo piso, las nuevas notas y que 800 corridas sigan completando tutorial + album.

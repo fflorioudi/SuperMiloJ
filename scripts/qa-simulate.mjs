@@ -30,7 +30,14 @@ const artAssets = [
   "public/art/terrain-spritesheet.png",
   "public/art/enemy-spritesheet.png",
   "public/art/platform-spritesheet.png",
-  "public/art/enemy-animated-spritesheet.png",
+  "public/art/note-spritesheet.png",
+  "public/art/ground-spritesheet.png",
+  "public/art/enemies/enemy-cassette.png",
+  "public/art/enemies/enemy-ghost.png",
+  "public/art/enemies/enemy-mic.png",
+  "public/art/enemies/enemy-firefly.png",
+  "public/art/enemies/enemy-tv.png",
+  "public/art/enemies/enemy-barrel.png",
   "public/art/bg-00-tutorial.png",
   "public/art/bg-01-bajo-de-la-piel.png",
   "public/art/bg-02-nino.png",
@@ -260,7 +267,16 @@ for (let level = 0; level < tracks.length; level += 1) {
   if (mateBlocks.length === 0 || mateBlocks.length > (level < 11 ? 1 : 2)) issues.push("mate rarity outside expected range");
   if (world.blocks.some((block) => block.y < 80 || block.y > 430)) issues.push("block outside safe vertical range");
   if (world.notes.some((note) => note.y < 40 || note.y > 460)) issues.push("note outside safe vertical range");
-  if (world.enemies.some((enemy) => enemy.y < 120 || enemy.y > 440 || enemy.min < 0 || enemy.max > world.length + 120)) issues.push("enemy outside expected patrol bounds");
+  if (world.enemies.some((enemy) => enemy.min < 0 || enemy.max > world.length + 120)) issues.push("enemy horizontal patrol outside expected bounds");
+  if (
+    world.enemies.some((enemy) => {
+      const allowedTop = enemy.pattern === "fly" || enemy.pattern === "firefly" ? 72 : 120;
+      const allowedBottom = enemy.pattern === "fly" || enemy.pattern === "firefly" ? 440 : 448;
+      return enemy.y < allowedTop || enemy.y > allowedBottom;
+    })
+  ) {
+    issues.push("enemy vertical spawn outside expected pattern bounds");
+  }
   if (level >= 4 && world.obstacles.length === 0) issues.push("expected mandatory platform obstacles");
   if (level >= 7 && world.checkpoints.length < 3) issues.push("expected third checkpoint in long levels");
   if (world.obstacles.some((obstacle) => obstacle.y < 360 || obstacle.y + obstacle.h !== 468 || obstacle.w < 36)) issues.push("obstacle collider does not seal ground route");
