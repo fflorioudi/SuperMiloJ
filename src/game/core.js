@@ -144,6 +144,18 @@ export function hasSolidFooting(entity, platform, minOverlap = 10) {
   return horizontalOverlap(entity, platform) >= minOverlap;
 }
 
+export function isSeparatedByPlatform(player, enemy, platforms) {
+  return platforms.some(
+    (platform) =>
+      platform.y < height &&
+      horizontalOverlap(player, platform) >= 8 &&
+      horizontalOverlap(enemy, platform) >= 8 &&
+      enemy.y + enemy.h <= platform.y + 6 &&
+      player.y < platform.y + platform.h &&
+      player.y + player.h > platform.y,
+  );
+}
+
 export function resolveHorizontalCollision(entity, solid, previousX) {
   if (!rectsOverlap(entity, solid)) return null;
   const previousRight = previousX + entity.w;

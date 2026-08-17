@@ -5,6 +5,7 @@ import {
   friction,
   gravity,
   height,
+  isSeparatedByPlatform,
   makeWorld,
   moveEnemy,
   rectsOverlap,
@@ -131,6 +132,13 @@ function assertCore(name, condition, details = "") {
   const enemy = { x: 132, y: 432, baseY: 432, vx: 4, min: 80, max: 260, w: 30, h: 30, pattern: "walk", phase: 0 };
   moveEnemy(enemy, [obstacle]);
   assertCore("enemy reverses at solid walls", enemy.x + enemy.w <= obstacle.x && enemy.vx < 0);
+}
+
+{
+  const platform = { x: 200, y: 360, w: 120, h: 20 };
+  const enemy = { x: 226, y: 330, w: 30, h: 30 };
+  const player = { ...freshPlayer(), x: 224, y: 350, w: 32, h: 62 };
+  assertCore("platform blocks enemy damage from below", isSeparatedByPlatform(player, enemy, [platform]));
 }
 
 {

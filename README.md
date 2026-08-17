@@ -156,3 +156,12 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Los muros conservan colision solida completa, separados de las plataformas.
 - Se mejoro la pantalla global de **Super Milo J** con escena arcade, cielo animado, ciudad, Obelisco, mate, notas y botones mas presentes.
 - El QA suma una prueba especifica para pasar por debajo de plataformas sin bug visual.
+
+### v14
+
+- Se saco la fila confusa de numeros `01-05` de la portada global.
+- La portada ahora apunta mas a Milo J y al album: Obelisco, mate, disco, campera marron y detalle tipo cicatriz metalica.
+- Se ajusto la descripcion de portada para contar mejor la idea del viaje de Milo chico al Milo actual.
+- Se corrigio el dano injusto de enemigos sobre plataformas: si una plataforma separa a Milo del enemigo, no hay golpe por tocar el gorro desde abajo.
+- Los fondos reducen bloques gigantes y agregan siluetas pixeladas mas suaves, ventanas y textura de escena.
+- El QA suma una prueba especifica para enemigo arriba de plataforma y Milo debajo.

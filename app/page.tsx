@@ -9,6 +9,7 @@ import {
   friction,
   gravity,
   height,
+  isSeparatedByPlatform,
   makeWorld,
   moveEnemy,
   readProgress,
@@ -409,6 +410,7 @@ export default function Home() {
         for (const enemy of world.enemies) {
           moveEnemy(enemy, world.obstacles);
           if (rectsOverlap(p, enemy)) {
+            if (isSeparatedByPlatform(p, enemy, world.platforms)) continue;
             if (p.vy > 2 && p.y + p.h < enemy.y + 18) {
               p.vy = -8.2;
               enemy.x = -9999;
@@ -525,17 +527,16 @@ export default function Home() {
     const drawAlbumParallax = (context: CanvasRenderingContext2D, motif: number, cam: number, track: Track) => {
       const far = cam * 0.07;
       const mid = cam * 0.2;
-      context.fillStyle = "rgba(0,0,0,0.12)";
+      context.fillStyle = "rgba(0,0,0,0.1)";
       for (let x = -120; x < width + 160; x += 150) {
         const px = x - (far % 150);
-        context.fillRect(px, 332 + ((x + motif * 17) % 4) * 12, 94, 136);
+        drawSoftPixelHill(context, px, 338 + ((x + motif * 17) % 4) * 10, 116, 130);
       }
 
-      context.fillStyle = "rgba(255,255,255,0.1)";
+      context.fillStyle = "rgba(255,255,255,0.08)";
       for (let x = -60; x < width + 180; x += 220) {
         const px = x - (mid % 220);
-        context.fillRect(px, 382, 74, 10);
-        context.fillRect(px + 26, 362, 22, 20);
+        drawDistantWindow(context, px, 378 + ((motif + x) % 3) * 8, track.accent);
       }
 
       const x = 760 - (cam * 0.12) % 980;
@@ -602,6 +603,27 @@ export default function Home() {
         context.fillRect(x, 340, 94, 20);
         context.fillRect(x + 18, 320, 44, 20);
       }
+    };
+
+    const drawSoftPixelHill = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
+      context.fillRect(x, y + 34, w, h - 34);
+      context.fillRect(x + 16, y + 18, w - 30, 18);
+      context.fillRect(x + 38, y, w - 70, 20);
+      context.fillStyle = "rgba(255,255,255,0.035)";
+      context.fillRect(x + 18, y + 42, 26, 6);
+      context.fillRect(x + 62, y + 66, 18, 6);
+      context.fillStyle = "rgba(0,0,0,0.1)";
+    };
+
+    const drawDistantWindow = (context: CanvasRenderingContext2D, x: number, y: number, accent: string) => {
+      context.fillRect(x, y + 20, 68, 8);
+      context.fillRect(x + 22, y, 20, 20);
+      context.fillStyle = "rgba(0,0,0,0.12)";
+      context.fillRect(x + 8, y + 28, 84, 58);
+      context.fillStyle = accent;
+      context.fillRect(x + 18, y + 40, 5, 5);
+      context.fillRect(x + 48, y + 54, 5, 5);
+      context.fillStyle = "rgba(255,255,255,0.08)";
     };
 
     const drawSkinLayers = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
@@ -957,14 +979,16 @@ export default function Home() {
               <span className="pixel-note note-two" />
               <span className="pixel-mate" />
               <span className="pixel-milo" />
+              <span className="pixel-jacket" />
+              <span className="pixel-record" />
             </div>
             <span className="kicker">La Vida Era Mas Corta</span>
             <h1>Super Milo J</h1>
-            <p>Un viaje pixelado por 15 canciones, mates raros, notas y checkpoints hasta el Obelisco.</p>
+            <p>De Milo chico al Milo de ahora: 15 canciones, barrio, memoria, mates raros y una carrera hasta el Obelisco.</p>
             <div className="global-badges" aria-label="Resumen del juego">
-              <span>15 niveles</span>
-              <span>Pixel run</span>
-              <span>Modo album</span>
+              <span>15 canciones</span>
+              <span>Mate power</span>
+              <span>Obelisco final</span>
             </div>
             <div className="global-actions">
               <button type="button" onClick={() => setShowGlobalIntro(false)}>
@@ -973,11 +997,6 @@ export default function Home() {
               <button type="button" onClick={toggleMusic}>
                 {musicEnabled ? "Musica ON" : "Musica"}
               </button>
-            </div>
-            <div className="global-trackline" aria-hidden="true">
-              {tracks.slice(0, 5).map((trackItem, index) => (
-                <span key={trackItem.title}>{String(index + 1).padStart(2, "0")}</span>
-              ))}
             </div>
           </div>
         </div>

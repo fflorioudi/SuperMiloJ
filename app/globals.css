@@ -57,10 +57,8 @@ button {
   padding: 24px;
   text-align: center;
   background:
-    radial-gradient(circle at 50% 18%, rgba(255, 206, 74, 0.12), transparent 30%),
-    linear-gradient(rgba(13, 14, 20, 0.34), rgba(13, 14, 20, 0.9)),
-    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
-    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    radial-gradient(circle at 50% 14%, rgba(255, 206, 74, 0.16), transparent 28%),
+    linear-gradient(180deg, rgba(18, 20, 32, 0.95), rgba(10, 11, 17, 0.96)),
     #121420;
   background-size: auto, 24px 24px, 24px 24px, auto;
 }
@@ -92,8 +90,10 @@ button {
   gap: 14px;
   padding: 22px clamp(16px, 4vw, 42px) 26px;
   border: 4px solid var(--line);
-  background: rgba(13, 14, 20, 0.72);
-  box-shadow: 0 0 0 4px #090a0e, 12px 12px 0 rgba(0,0,0,0.42), inset 0 0 0 2px rgba(255,255,255,0.06);
+  background:
+    linear-gradient(rgba(14, 16, 24, 0.78), rgba(14, 16, 24, 0.9)),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 5px);
+  box-shadow: 0 0 0 4px #090a0e, 14px 14px 0 rgba(0,0,0,0.44), inset 0 0 0 2px rgba(255,255,255,0.06);
 }
 
 .global-start h1 {
@@ -128,15 +128,7 @@ button {
 }
 
 .global-badges,
-.global-trackline {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-}
-
-.global-badges span,
-.global-trackline span {
+.global-badges span {
   border: 2px solid var(--line);
   background: var(--panel-2);
   color: var(--ink);
@@ -144,21 +136,16 @@ button {
   box-shadow: inset -2px -2px 0 rgba(0,0,0,0.24), inset 2px 2px 0 rgba(255,255,255,0.06);
 }
 
-.global-trackline span {
-  color: var(--mint);
-  min-width: 42px;
-}
-
 .global-scene {
   position: relative;
   width: min(760px, 86vw);
   height: 220px;
-  border-bottom: 18px solid #5d7f42;
+  border-bottom: 18px solid #5f4a36;
   overflow: hidden;
   background:
-    linear-gradient(rgba(255,255,255,0.05), transparent 46%),
-    linear-gradient(180deg, #202938, #3b245d);
-  box-shadow: inset 0 -28px 0 rgba(0,0,0,0.18);
+    radial-gradient(circle at 74% 24%, rgba(255,206,74,0.18), transparent 14%),
+    linear-gradient(180deg, #1e2433 0 46%, #2b2036 46% 72%, #241a2a 72%);
+  box-shadow: inset 0 -34px 0 rgba(0,0,0,0.18), inset 0 0 0 3px rgba(255,255,255,0.06);
 }
 
 .pixel-sun,
@@ -166,17 +153,20 @@ button {
 .pixel-note,
 .pixel-milo,
 .pixel-mate,
-.pixel-skyline {
+.pixel-skyline,
+.pixel-jacket,
+.pixel-record {
   position: absolute;
   display: block;
 }
 
 .pixel-skyline {
   bottom: 0;
-  width: 160px;
-  height: 94px;
-  background: rgba(0,0,0,0.24);
-  box-shadow: 52px -36px 0 rgba(0,0,0,0.2), 104px -12px 0 rgba(0,0,0,0.24), 180px -52px 0 rgba(0,0,0,0.18);
+  width: 148px;
+  height: 74px;
+  background: rgba(0,0,0,0.22);
+  clip-path: polygon(0 100%, 0 45%, 18% 45%, 18% 20%, 34% 20%, 34% 55%, 52% 55%, 52% 0, 76% 0, 76% 34%, 100% 34%, 100% 100%);
+  box-shadow: 90px -20px 0 rgba(0,0,0,0.18), 180px -8px 0 rgba(0,0,0,0.16);
 }
 
 .skyline-one {
@@ -194,7 +184,7 @@ button {
   width: 56px;
   height: 56px;
   background: #ffce4a;
-  box-shadow: 0 0 0 8px rgba(255, 206, 74, 0.2);
+  box-shadow: 0 0 0 8px rgba(255, 206, 74, 0.2), -240px 82px 0 -18px #7d8b5f;
 }
 
 .pixel-obelisco {
@@ -246,6 +236,38 @@ button {
   height: 20px;
   background: #5a3325;
   box-shadow: 3px -5px 0 #8a5638, 5px -2px 0 #74c476, 17px -18px 0 -7px #d7d2c8, 21px -21px 0 -8px #d7d2c8;
+}
+
+.pixel-jacket {
+  left: 142px;
+  bottom: 0;
+  width: 76px;
+  height: 96px;
+  background: #4b241b;
+  clip-path: polygon(20% 0, 80% 0, 100% 100%, 62% 100%, 50% 46%, 38% 100%, 0 100%);
+  box-shadow: inset 8px 0 0 #6a3829, inset -8px 0 0 #2a1611;
+}
+
+.pixel-jacket::after {
+  content: "";
+  position: absolute;
+  left: 32px;
+  top: 18px;
+  width: 8px;
+  height: 62px;
+  background: #d8d0c0;
+  box-shadow: 10px 22px 0 -2px #b69b6b, 15px 29px 0 -3px #b69b6b;
+}
+
+.pixel-record {
+  left: 246px;
+  bottom: 28px;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #ffce4a 0 8px, #15151d 9px 22px, #2c2d3a 23px 24px, #15151d 25px 100%);
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.35);
 }
 
 @keyframes star-drift {
