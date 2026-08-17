@@ -37,6 +37,7 @@ const artAssets = [
   "public/art/mate-powerup.png",
   "public/art/checkpoint-flag.png",
   "public/art/obelisco-goal.png",
+  "public/art/album-finale-thanks.png",
   "public/art/enemies/enemy-cassette.png",
   "public/art/enemies/enemy-ghost.png",
   "public/art/enemies/enemy-mic.png",

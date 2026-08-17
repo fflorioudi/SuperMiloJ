@@ -46,6 +46,7 @@ const blockSpriteSheet = "/art/block-spritesheet.png";
 const matePowerupSprite = "/art/mate-powerup.png";
 const checkpointSprite = "/art/checkpoint-flag.png";
 const obeliscoGoalSprite = "/art/obelisco-goal.png";
+const albumFinaleArt = "/art/album-finale-thanks.png";
 const enemySpriteSheets = {
   cassette: "/art/enemies/enemy-cassette.png",
   ghost: "/art/enemies/enemy-ghost.png",
@@ -221,6 +222,7 @@ export default function Home() {
   const [playMode, setPlayMode] = useState<"tutorial" | "album">("album");
   const [showGlobalIntro, setShowGlobalIntro] = useState(true);
   const [showIntro, setShowIntro] = useState(true);
+  const [showAlbumFinale, setShowAlbumFinale] = useState(false);
   const [routeProgress, setRouteProgress] = useState(0);
   const [musicProgress, setMusicProgress] = useState(0);
 
@@ -245,6 +247,7 @@ export default function Home() {
       matePowerupSprite,
       checkpointSprite,
       obeliscoGoalSprite,
+      albumFinaleArt,
       ...Object.values(enemySpriteSheets),
       ...backgroundArt,
     ].forEach((src) => {
@@ -270,6 +273,7 @@ export default function Home() {
     setLives(3);
     setWon(false);
     setGameOver(false);
+    setShowAlbumFinale(false);
     setRouteProgress(0);
     setMusicProgress(0);
     setShowIntro(true);
@@ -434,6 +438,7 @@ export default function Home() {
         return finalScore;
       });
       setStatus(level === tracks.length - 1 ? "Ultima bandera arriba: el album queda prendido en el Obelisco." : `Cerraste ${tracks[level].title}. Respira un segundo: la proxima cancion ya espera.`);
+      if (level === tracks.length - 1) setShowAlbumFinale(true);
     };
 
     const step = () => {
@@ -1606,10 +1611,49 @@ export default function Home() {
           </div>
         </div>
       )}
+      {showAlbumFinale && (
+        <section className="album-finale" aria-label="Pantalla final Super Milo J">
+          <div className="album-finale__image" />
+          <div className="album-finale__shade" />
+          <div className="album-finale__content">
+            <span>Album completado</span>
+            <h2>Gracias por jugar Super Milo J</h2>
+            <p>
+              Llegaste al Obelisco con las 15 canciones encima. Quedaron las notas, los mates raros,
+              los checkpoints y ese viaje de Milo chico al Milo de ahora.
+            </p>
+            <p>
+              La bandera queda arriba. Ahora podes volver a buscar una pasada mas limpia, mas notas
+              y menos vidas perdidas.
+            </p>
+            <div className="album-finale__actions">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAlbumFinale(false);
+                  setPlayMode("album");
+                  setLevel(0);
+                }}
+              >
+                Rejugar album
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAlbumFinale(false);
+                  setShowGlobalIntro(true);
+                }}
+              >
+                Volver al inicio
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v29</span>
+            <span className="kicker">Super Milo J v30</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">

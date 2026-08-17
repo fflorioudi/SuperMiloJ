@@ -305,3 +305,11 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Los tramos largos de suelo que funcionaban como descanso ahora tienen notas guia y, en niveles medios/altos, alguna patrulla terrestre medida.
 - Esos descansos siguen existiendo como respiro entre desafios, pero ya no quedan tan vacios visual ni jugablemente.
 - Queda anotada para la siguiente tanda la pantalla final completa de agradecimiento con Milo y elementos del album usando PNG pixel art.
+
+### v30
+
+- Se agrego una pantalla final completa al terminar `Jangadero`, pensada como cierre del album y no como cartel chico de nivel.
+- Se genero el PNG `public/art/album-finale-thanks.png` con Milo, Obelisco, mate, vinilo, notas, recuerdos y clima nocturno de Buenos Aires.
+- La pantalla final usa el PNG como fondo full-screen y texto HTML encima para mantener buena legibilidad.
+- Desde el cierre se puede rejugar el album o volver a la portada global.
+- El QA ahora valida que el asset final exista junto al resto del arte principal.

@@ -38,6 +38,7 @@ Fecha: 2026-08-17
 - Se valida que los niveles tardios tengan una duracion minima de ruta automatizada.
 - Se valida que los enemigos voladores no atraviesen muros durante patrullas largas.
 - Se valida la tanda v29 con respawn de checkpoints ajustado, barra separada de cancion y tramos largos de piso menos vacios.
+- Se valida la tanda v30 con pantalla final full-screen y asset `album-finale-thanks.png`.
 
 ## Resultado
 
@@ -88,6 +89,7 @@ Fecha: 2026-08-17
 - La v29 hace que el checkpoint recuerde la altura real de reaparicion, incluso si Milo pierde transformacion antes de volver.
 - El HUD muestra dos lecturas: avance de recorrido y avance de la cancion, para que se entienda mejor cuanto queda de gameplay y audio.
 - Los espacios de piso amplio se mantienen como respiracion de nivel, pero ahora reciben notas guia y patrullas puntuales cuando son demasiado largos.
+- La v30 agrega un cierre completo del album con PNG dedicado, texto legible encima y acciones para rejugar o volver al inicio.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba
