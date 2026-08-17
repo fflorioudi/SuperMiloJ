@@ -35,13 +35,29 @@ type SpriteRect = [number, number, number, number, string];
 type SpriteFrame = SpriteRect[];
 
 const titleArt = "/art/super-milo-title.png";
-const backgroundArt = ["/art/bg-barrio.png", "/art/bg-ciudad-noche.png", "/art/bg-monte-rio.png"];
+const miloSpriteSheet = "/art/milo-spritesheet.png";
+const backgroundArt = [
+  "/art/bg-00-tutorial.png",
+  "/art/bg-01-bajo-de-la-piel.png",
+  "/art/bg-02-nino.png",
+  "/art/bg-03-gil.png",
+  "/art/bg-04-ama-de-mi-sol.png",
+  "/art/bg-05-solifican12.png",
+  "/art/bg-06-lucia.png",
+  "/art/bg-07-mmmm.png",
+  "/art/bg-08-llora-llora.png",
+  "/art/bg-09-recorde.png",
+  "/art/bg-10-cuando-el-agua-hirviendo.png",
+  "/art/bg-11-la-vida-era-mas-corta.png",
+  "/art/bg-12-radamel.png",
+  "/art/bg-13-el-invisible.png",
+  "/art/bg-14-luciernagas.png",
+  "/art/bg-15-jangadero.png",
+];
 
 function backgroundForLevel(levelIndex: number) {
   if (levelIndex < 0) return backgroundArt[0];
-  if (levelIndex < 5) return backgroundArt[0];
-  if (levelIndex < 10) return backgroundArt[1];
-  return backgroundArt[2];
+  return backgroundArt[levelIndex + 1] ?? backgroundArt[1];
 }
 
 const miloPalette = {
@@ -173,7 +189,7 @@ export default function Home() {
     setProgress(saved);
     setUnlocked(Math.max(1, Math.min(tracks.length, saved.unlocked)));
     setMusicEnabled(Boolean(saved.musicEnabled));
-    [titleArt, ...backgroundArt].forEach((src) => {
+    [titleArt, miloSpriteSheet, ...backgroundArt].forEach((src) => {
       const image = new Image();
       image.src = src;
       artImages.current[src] = image;
@@ -534,22 +550,133 @@ export default function Home() {
     const drawArtBackdrop = (context: CanvasRenderingContext2D, src: string, cam: number) => {
       const image = artImages.current[src];
       if (!image?.complete || image.naturalWidth === 0) return;
-      const cropDrift = Math.floor((cam * 0.045) % Math.max(1, image.naturalWidth * 0.08));
-      const sourceX = Math.min(image.naturalWidth * 0.08, cropDrift);
-      const sourceW = image.naturalWidth - image.naturalWidth * 0.08;
-      context.drawImage(image, sourceX, 0, sourceW, image.naturalHeight, 0, 0, width, height);
+      const drift = Math.floor((cam * 0.035) % 18);
+      context.drawImage(image, -drift, 0, width + 36, height);
       context.fillStyle = "rgba(8, 9, 14, 0.08)";
       context.fillRect(0, 0, width, height);
     };
 
     const drawLevelAtmosphere = (context: CanvasRenderingContext2D, levelIndex: number, cam: number, track: PlayableTrack) => {
       const motif = levelIndex < 0 ? 1 : levelIndex % tracks.length;
-      if (motif === 3 || motif === 4) drawDust(context, cam, track.accent);
-      if (motif === 5 || motif === 6 || motif === 8 || motif === 9) drawStageGlow(context, cam, track.accent);
-      if (motif === 7) drawRain(context, cam, track.accent);
-      if (motif === 10) drawClockShards(context, cam, track.accent);
-      if (motif === 11) drawFieldLights(context, cam);
-      if (motif === 12 || motif === 13 || motif === 14) drawFireflies(context, cam);
+      if (levelIndex < 0) drawTutorialSpark(context, cam, track.accent);
+      else if (motif === 0) drawDust(context, cam, track.accent);
+      else if (motif === 1) drawPatioLeaves(context, cam, track.accent);
+      else if (motif === 2) drawStageGlow(context, cam, track.accent);
+      else if (motif === 3 || motif === 4) drawHeat(context, cam, track.accent);
+      else if (motif === 5) drawMoonNotes(context, cam, track.accent);
+      else if (motif === 6) drawStudioPulse(context, cam, track.accent);
+      else if (motif === 7) drawRain(context, cam, track.accent);
+      else if (motif === 8) drawMemoryGlints(context, cam, track.accent);
+      else if (motif === 9) drawSteam(context, cam);
+      else if (motif === 10) drawClockShards(context, cam, track.accent);
+      else if (motif === 11) drawFieldLights(context, cam);
+      else if (motif === 12) drawFog(context, cam);
+      else if (motif === 13) drawFireflies(context, cam);
+      else if (motif === 14) drawRiverWaves(context, cam);
+    };
+
+    const drawTutorialSpark = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
+      context.fillStyle = accent;
+      for (let i = 0; i < 10; i += 1) {
+        const x = (i * 97 - cam * 0.12 + tick.current * 0.2) % width;
+        const y = 105 + ((i * 31 + tick.current) % 160);
+        context.globalAlpha = 0.28;
+        context.fillRect(x, y, 4, 4);
+      }
+      context.globalAlpha = 1;
+    };
+
+    const drawPatioLeaves = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
+      context.fillStyle = accent;
+      for (let i = 0; i < 16; i += 1) {
+        const x = (i * 73 - cam * 0.18 + tick.current * 0.35) % width;
+        const y = 95 + ((i * 29 + Math.floor(tick.current * 0.8)) % 250);
+        context.globalAlpha = 0.22;
+        context.fillRect(x, y, 7, 3);
+      }
+      context.globalAlpha = 1;
+    };
+
+    const drawHeat = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
+      context.fillStyle = accent;
+      context.globalAlpha = 0.16;
+      for (let i = 0; i < 9; i += 1) {
+        const x = (i * 119 - cam * 0.22) % width;
+        const y = 260 + ((i * 17 + tick.current) % 80);
+        context.fillRect(x, y, 46, 3);
+        context.fillRect(x + 18, y + 8, 38, 3);
+      }
+      context.globalAlpha = 1;
+    };
+
+    const drawMoonNotes = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
+      context.fillStyle = accent;
+      context.globalAlpha = 0.2;
+      for (let i = 0; i < 8; i += 1) {
+        const x = (i * 151 - cam * 0.16) % width;
+        const y = 90 + ((i * 41 + tick.current) % 160);
+        context.fillRect(x, y, 5, 20);
+        context.fillRect(x + 5, y, 12, 5);
+      }
+      context.globalAlpha = 1;
+    };
+
+    const drawStudioPulse = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
+      context.fillStyle = accent;
+      context.globalAlpha = 0.18;
+      for (let i = 0; i < 14; i += 1) {
+        const h = 16 + ((i * 13 + tick.current) % 58);
+        context.fillRect(80 + i * 24 - (cam * 0.08) % 24, 310 - h, 7, h);
+      }
+      context.globalAlpha = 1;
+    };
+
+    const drawMemoryGlints = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
+      context.fillStyle = accent;
+      context.globalAlpha = 0.2;
+      for (let i = 0; i < 12; i += 1) {
+        const x = (i * 83 - cam * 0.12) % width;
+        const y = 120 + ((i * 47 + tick.current) % 180);
+        context.fillRect(x, y, 4, 4);
+        context.fillRect(x - 5, y + 1, 14, 2);
+      }
+      context.globalAlpha = 1;
+    };
+
+    const drawSteam = (context: CanvasRenderingContext2D, cam: number) => {
+      context.fillStyle = "#ffffff";
+      context.globalAlpha = 0.18;
+      for (let i = 0; i < 7; i += 1) {
+        const x = 160 + i * 76 - (cam * 0.1) % 76;
+        const y = 250 - ((tick.current + i * 17) % 70);
+        context.fillRect(x, y, 10, 30);
+        context.fillRect(x + 8, y - 12, 10, 20);
+      }
+      context.globalAlpha = 1;
+    };
+
+    const drawFog = (context: CanvasRenderingContext2D, cam: number) => {
+      context.fillStyle = "#caffbf";
+      context.globalAlpha = 0.12;
+      for (let i = 0; i < 8; i += 1) {
+        const x = (i * 142 - cam * 0.2 + tick.current * 0.12) % width;
+        const y = 190 + ((i * 23) % 160);
+        context.fillRect(x, y, 94, 8);
+        context.fillRect(x + 20, y - 7, 62, 7);
+      }
+      context.globalAlpha = 1;
+    };
+
+    const drawRiverWaves = (context: CanvasRenderingContext2D, cam: number) => {
+      context.fillStyle = "#d6eef2";
+      context.globalAlpha = 0.26;
+      for (let i = 0; i < 11; i += 1) {
+        const x = (i * 104 - cam * 0.32 + tick.current * 0.28) % width;
+        const y = 390 + ((i * 19) % 80);
+        context.fillRect(x, y, 46, 4);
+        context.fillRect(x + 18, y - 5, 38, 4);
+      }
+      context.globalAlpha = 1;
     };
 
     const drawDust = (context: CanvasRenderingContext2D, cam: number, accent: string) => {
@@ -760,7 +887,14 @@ export default function Home() {
       context.fillStyle = accent;
       for (let i = 0; i < 32; i += 1) {
         const x = (i * 47 - cam * 0.5) % width;
-        context.fillRect(x, 50 + ((i * 37 + tick.current * 5) % 360), 4, 18);
+        const y = 50 + ((i * 37 + tick.current * 5) % 360);
+        context.beginPath();
+        context.moveTo(x, y);
+        context.lineTo(x + 5, y);
+        context.lineTo(x - 4, y + 22);
+        context.lineTo(x - 9, y + 22);
+        context.closePath();
+        context.fill();
       }
     };
 
@@ -965,6 +1099,22 @@ export default function Home() {
       if (blink > 0 && Math.floor(blink / 6) % 2 === 0) return;
       const walking = Math.abs(player.current.vx) > 0.45 && player.current.grounded;
       const frameName = blink > 0 ? "hit" : !player.current.grounded ? "jump" : walking ? (Math.floor(tick.current / 8) % 2 === 0 ? "run1" : "run2") : "idle";
+      const sheet = artImages.current[miloSpriteSheet];
+      const frameIndex = blink > 0
+        ? 6
+        : !player.current.grounded
+          ? player.current.vy < 0 ? 4 : 5
+          : walking
+            ? 1 + (Math.floor(tick.current / 6) % 3)
+            : 0;
+      if (sheet?.complete && sheet.naturalWidth > 0) {
+        if (transformed && powered > 0) {
+          context.fillStyle = "rgba(115,240,189,0.26)";
+          context.fillRect(x - 8, y - 12, 54, 78);
+        }
+        drawMiloFromSheet(context, sheet, frameIndex, transformed ? 1 : 0, x, transformed ? y - 10 : y - 6, facing);
+        return;
+      }
       const spriteSet = transformed ? miloSprites.actual : miloSprites.chico;
       const frame = spriteSet[frameName];
       if (transformed && powered > 0) {
@@ -972,6 +1122,30 @@ export default function Home() {
         context.fillRect(x - 6, y - 8, 48, 72);
       }
       drawSpriteFrame(context, frame, x, transformed ? y - 8 : y, facing, accent);
+    };
+
+    const drawMiloFromSheet = (context: CanvasRenderingContext2D, sheet: HTMLImageElement, frameIndex: number, row: number, x: number, y: number, facing: number) => {
+      const columns = 8;
+      const rows = 2;
+      const sourceW = sheet.naturalWidth / columns;
+      const sourceH = sheet.naturalHeight / rows;
+      const drawW = row === 1 ? 50 : 48;
+      const drawH = row === 1 ? 70 : 68;
+      const center = x + (row === 1 ? 18 : 17);
+      const drawX = Math.round(center - drawW / 2);
+      const drawY = Math.round(y - 8);
+      const sourceX = Math.max(0, Math.min(columns - 1, frameIndex)) * sourceW;
+      const sourceY = Math.max(0, Math.min(rows - 1, row)) * sourceH;
+      context.save();
+      context.imageSmoothingEnabled = false;
+      if (facing < 0) {
+        context.translate(drawX + drawW, drawY);
+        context.scale(-1, 1);
+        context.drawImage(sheet, sourceX, sourceY, sourceW, sourceH, 0, 0, drawW, drawH);
+      } else {
+        context.drawImage(sheet, sourceX, sourceY, sourceW, sourceH, drawX, drawY, drawW, drawH);
+      }
+      context.restore();
     };
 
     const drawSpriteFrame = (context: CanvasRenderingContext2D, frame: SpriteFrame, x: number, y: number, facing: number, accent: string) => {
@@ -1069,7 +1243,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v17</span>
+            <span className="kicker">Super Milo J v19</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">

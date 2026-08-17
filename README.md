@@ -192,3 +192,23 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - La portada global ahora permite entrar directo al album o practicar primero en el tutorial.
 - La playlist muestra el tutorial separado antes de los 15 niveles del album.
 - El QA automatico ahora valida 16 escenarios: tutorial + 15 canciones, con 800 corridas totales.
+
+### v18
+
+- Se generaron 16 fondos PNG pixel art: tutorial + 15 canciones.
+- Cada nivel ahora usa su propio asset `bg-XX-*.png` en vez de compartir tres familias de fondo.
+- Se agrego `scripts/generate-pixel-assets.ps1` para regenerar fondos y spritesheet localmente.
+- Se agrego `public/art/milo-spritesheet.png` con Milo chico y Milo actual en frames separados.
+- El render de Milo ahora usa spritesheet externa y conserva fallback al dibujo anterior si el PNG no carga.
+- Las animaciones de fondo dejaron de repetirse en los ultimos tres niveles: `El Invisible` usa niebla, `Luciernagas` usa luciernagas y `Jangadero` usa olas de rio.
+- `Llora Llora` tiene fondo y lluvia redibujados para evitar la sensacion de bloques cuadrados.
+- El QA valida que existan los 16 fondos y la spritesheet.
+
+### v19
+
+- Se reemplazaron los 16 fondos placeholder por PNGs pixel art de alta definicion, generados tomando como referencia la calidad de `bg-barrio.png`, `bg-ciudad-noche.png` y `bg-monte-rio.png`.
+- Cada cancion tiene una escena mas identificable: cancha para `Radamel`, cocina/terraza para `Cuando El Agua Hirviendo`, relojes para `La Vida Era Mas Corta`, rio final para `Jangadero`, bosque calido para `Luciernagas` y monte con niebla para `El Invisible`.
+- `Llora Llora` recibio una escena de lluvia neon mas organica para abandonar el fondo cuadrado anterior.
+- Se rehizo `milo-spritesheet.png` con Milo chico de campera azul y Milo actual de campera marron, usando dos filas de animacion.
+- Se limpio la transparencia real del spritesheet para que Milo no arrastre un rectangulo de fondo.
+- El renderer ahora recorta el spritesheet segun sus dimensiones reales en 8 columnas x 2 filas, asi los assets de mayor calidad no quedan deformados.

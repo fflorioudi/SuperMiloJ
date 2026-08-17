@@ -27,19 +27,21 @@ Prioridad siguiente.
 
 ## Etapa 3: arte y presentacion
 
-Va despues de cerrar jugabilidad.
+Estado: base hecha en alta calidad.
 
-- Generar 15 fondos PNG distintos, uno por cancion.
-- Usar nombres estables: `bg-01-bajo-de-la-piel.png`, `bg-02-nino.png`, hasta `bg-15-jangadero.png`.
-- Mantener fallback a las tres familias actuales si falta algun fondo nuevo.
-- Crear capas por fondo: cielo/lejos, ciudad o paisaje medio, objetos cercanos y atmosfera.
-- Mejorar parallax para que el fondo se mueva con profundidad y no como una imagen plana.
-- Crear spritesheet nueva de Milo chico: campera azul, remera blanca, corte de sus inicios y cara mas joven.
-- Crear spritesheet nueva de Milo actual: campera marron, gesto serio, diente dorado y detalle metalico.
-- Separar hitbox y sprite para poder mejorar el dibujo sin romper colisiones.
-- Agregar frames para idle, caminar, correr, saltar, caer, recibir golpe, tomar mate y celebrar.
-- Mejorar animacion del mate con vapor, brillo y rebote.
-- Mejorar Obelisco/meta con bandera argentina ondeando.
+- Hecho: generar 16 fondos PNG distintos, uno para tutorial y uno por cancion.
+- Hecho: reemplazar los fondos placeholder por PNGs pixel art de mayor detalle, comparables con `bg-barrio.png`, `bg-ciudad-noche.png` y `bg-monte-rio.png`.
+- Hecho: usar nombres estables: `bg-00-tutorial.png`, `bg-01-bajo-de-la-piel.png`, hasta `bg-15-jangadero.png`.
+- Hecho: crear `scripts/generate-pixel-assets.ps1` para regenerar los fondos y la spritesheet.
+- Hecho: crear `public/art/milo-spritesheet.png` con Milo chico y Milo actual.
+- Hecho: limpiar transparencia real del spritesheet para que el personaje no arrastre fondo.
+- Hecho: separar hitbox y sprite: la fisica conserva rectangulos y el render usa spritesheet.
+- Hecho: agregar frames para idle, correr, saltar, caer y recibir golpe.
+- Hecho: diferenciar atmosferas de los ultimos niveles: niebla, luciernagas y olas.
+- Pendiente: hacer una pasada manual de composicion por nivel para ajustar contraste entre fondo, plataformas, notas y enemigos.
+- Pendiente: sumar frames especificos de tomar mate y celebrar.
+- Pendiente: mejorar animacion del mate con vapor, brillo y rebote.
+- Pendiente: mejorar Obelisco/meta con bandera argentina ondeando.
 
 ## Etapa 4: audio
 
@@ -62,4 +64,4 @@ Va al final para no mezclar bugs visuales con bugs de reproduccion.
 
 ## Proxima accion recomendada
 
-La siguiente tanda deberia ser **jugabilidad**: coyote time, jump buffer, salto variable y tutorial con instrucciones visuales integradas al escenario.
+La siguiente tanda deberia ser una pasada mixta de **QA visual + jugabilidad fina**: capturas por nivel, contraste de fondos, coyote time, jump buffer, salto variable y tutorial con instrucciones visuales integradas al escenario.

@@ -20,7 +20,8 @@ Fecha: 2026-08-16
 - Se valida que Milo pueda pasar por debajo de plataformas one-way sin quedar aplastado ni atrapado.
 - Se valida que una plataforma bloquee el dano de un enemigo ubicado arriba cuando Milo esta debajo.
 - Se valida la version con portada y fondos PNG generados dentro de `public/art`.
-- Se valida que existan los assets de portada y las tres familias de fondos PNG.
+- Se valida que existan los assets de portada, la spritesheet de Milo y los 16 fondos PNG.
+- Se valida la tanda v19 con fondos PNG de alta definicion y spritesheet de Milo con transparencia real.
 - Se valida rareza de mates, cantidad minima de notas, plataformas elevadas, enemigos, obstaculos y checkpoints.
 - Se simulan patrullas largas de enemigos contra muros para detectar penetraciones o rebotes rotos.
 - Se valida que el tutorial no tenga audio de album, sea corto, tenga un mate, un checkpoint, un enemigo y ruta completada.
@@ -50,6 +51,10 @@ Fecha: 2026-08-16
 - Se corrigio una formula de separacion que podia generar plataformas demasiado pegadas en niveles avanzados.
 - Si el patron de bloques dejaba un nivel sin mate, el generador ahora garantiza un mate raro sin hacerlo abundante.
 - El tutorial quedo separado del album y no altera desbloqueos ni puntajes.
+- Cada escenario tiene fondo PNG propio y el render de Milo usa `public/art/milo-spritesheet.png`.
+- Las atmosferas de los ultimos niveles ya no comparten todas luciernagas: niebla, luciernagas y olas se dibujan por separado.
+- Los fondos v19 reemplazan los placeholders livianos por escenas pixel art detalladas, tomando como referencia visual los PNG buenos de barrio, ciudad noche y monte rio.
+- El spritesheet v19 se recorta por 8 columnas x 2 filas segun sus dimensiones reales, con fondo transparente para evitar rectangulos alrededor del personaje.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba
@@ -62,4 +67,4 @@ npm run qa
 
 - Agregar pruebas visuales con capturas por nivel.
 - Agregar pruebas especificas de power-up: tomar mate, mantener apariencia de Milo actual y perder solo el poder al recibir dano.
-- Agregar prueba de existencia para los 15 fondos por cancion cuando se generen.
+- Agregar pruebas visuales con capturas para detectar fondos demasiado cargados o con bajo contraste.
