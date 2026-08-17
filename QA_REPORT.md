@@ -20,7 +20,7 @@ Fecha: 2026-08-16
 - Se valida que Milo pueda pasar por debajo de plataformas one-way sin quedar aplastado ni atrapado.
 - Se valida que una plataforma bloquee el dano de un enemigo ubicado arriba cuando Milo esta debajo.
 - Se valida la version con portada y fondos PNG generados dentro de `public/art`.
-- Se valida que existan los assets de portada, la spritesheet de Milo, los spritesheets de terreno/enemigos y los 16 fondos PNG.
+- Se valida que existan los assets de portada, la spritesheet de Milo, los spritesheets de terreno/plataformas/enemigos y los 16 fondos PNG.
 - Se valida la tanda v19 con fondos PNG de alta definicion y spritesheet de Milo con transparencia real.
 - Se valida rareza de mates, cantidad minima de notas, plataformas elevadas, enemigos, obstaculos y checkpoints.
 - Se simulan patrullas largas de enemigos contra muros para detectar penetraciones o rebotes rotos.
@@ -56,6 +56,7 @@ Fecha: 2026-08-16
 - Los fondos v19 reemplazan los placeholders livianos por escenas pixel art detalladas, tomando como referencia visual los PNG buenos de barrio, ciudad noche y monte rio.
 - El spritesheet v19 se recorta por 8 columnas x 2 filas segun sus dimensiones reales, con fondo transparente para evitar rectangulos alrededor del personaje.
 - La v22 apaga overlays animados de fondo y renderiza plataformas, obstaculos y enemigos desde PNGs para que el arte acompañe mejor los paisajes.
+- La v23 vuelve a dejar el piso como bloque solido continuo, reserva PNGs para plataformas elevadas y agrega enemigos animados con patrones por tipo.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba

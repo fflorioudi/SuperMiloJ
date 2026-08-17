@@ -233,3 +233,12 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Se agrego `public/art/enemy-spritesheet.png` con enemigos mas detallados y siluetas distintas.
 - Plataformas, paredes y enemigos ahora se renderizan desde PNGs, manteniendo las hitbox rectangulares para no romper la jugabilidad.
 - El QA valida que existan los nuevos spritesheets de terreno y enemigos.
+
+### v23
+
+- Se corrigio el error visual de v22: el piso vuelve a ser solido, estatico y continuo, sin sprites de plataformas ni agujeros visuales.
+- Se agrego `public/art/platform-spritesheet.png` solo para plataformas elevadas, con superficies planas y mas legibles.
+- Se agrego `public/art/enemy-animated-spritesheet.png` con 6 enemigos y 4 frames por tipo.
+- Los enemigos ahora tienen tipos y patrones propios: cassette caminante, TV saltarin, fantasma volador, microfono rapido, luciernaga con vuelo organico y barril rodante.
+- El generador de enemigos varia velocidad, fase, amplitud y periodo para que no todos revelen el mismo patron al mismo tiempo.
+- Los enemigos voladores ya no usan el mismo rebote contra paredes que los enemigos terrestres.

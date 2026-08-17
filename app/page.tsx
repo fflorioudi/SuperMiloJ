@@ -38,6 +38,8 @@ const titleArt = "/art/super-milo-title.png";
 const miloSpriteSheet = "/art/milo-spritesheet.png";
 const terrainSpriteSheet = "/art/terrain-spritesheet.png";
 const enemySpriteSheet = "/art/enemy-spritesheet.png";
+const platformSpriteSheet = "/art/platform-spritesheet.png";
+const enemyAnimatedSpriteSheet = "/art/enemy-animated-spritesheet.png";
 const miloSpriteTrims = [
   [
     { x: 96, y: 123, w: 107, h: 257 },
@@ -216,7 +218,7 @@ export default function Home() {
     setProgress(saved);
     setUnlocked(Math.max(1, Math.min(tracks.length, saved.unlocked)));
     setMusicEnabled(Boolean(saved.musicEnabled));
-    [titleArt, miloSpriteSheet, terrainSpriteSheet, enemySpriteSheet, ...backgroundArt].forEach((src) => {
+    [titleArt, miloSpriteSheet, terrainSpriteSheet, enemySpriteSheet, platformSpriteSheet, enemyAnimatedSpriteSheet, ...backgroundArt].forEach((src) => {
       const image = new Image();
       image.src = src;
       artImages.current[src] = image;
@@ -532,7 +534,7 @@ export default function Home() {
       }
       for (const note of world.notes) if (!note.collected) drawNote(context, note.x - cam, note.y, track.accent);
       for (const mate of world.mates) if (!mate.collected) drawMate(context, mate.x - cam, mate.y);
-      for (const enemy of world.enemies) if (enemy.x > -1000) drawEnemy(context, enemy.x - cam, enemy.y, enemy.w, enemy.h, track.enemy, enemy.kind, enemy.pattern);
+      for (const enemy of world.enemies) if (enemy.x > -1000) drawEnemy(context, enemy, enemy.x - cam, enemy.y, enemy.w, enemy.h, track.enemy);
       for (const obstacle of world.obstacles) drawObstacle(context, obstacle.x - cam, obstacle.y, obstacle.w, obstacle.h, track.ground, track.accent);
       for (const checkpoint of world.checkpoints) drawCheckpoint(context, checkpoint.x - cam, checkpoint.y, checkpoint.active, track.accent);
 
@@ -1001,15 +1003,16 @@ export default function Home() {
     };
 
     const drawPlatform = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, levelIndex: number) => {
-      const image = artImages.current[terrainSpriteSheet];
+      const isGround = h >= 60;
+      if (isGround) {
+        drawSolidGround(context, x, y, w, h, color, levelIndex);
+        return;
+      }
+      const image = artImages.current[platformSpriteSheet];
       if (image?.complete && image.naturalWidth > 0) {
-        const isGround = h >= 60;
         const motif = levelIndex < 0 ? 0 : levelIndex % tracks.length;
-        const col = isGround ? (motif < 3 ? 0 : motif < 8 ? 3 : motif < 12 ? 2 : 1) : (motif === 7 ? 1 : motif >= 12 ? 2 : motif === 14 ? 3 : 0);
-        const row = isGround ? 1 : 0;
-        const visualY = isGround ? y - 10 : y - 18;
-        const visualH = isGround ? h + 26 : 46;
-        drawTerrainTile(context, image, col, row, x, visualY, w, visualH, isGround ? 210 : 150);
+        const col = motif === 7 ? 1 : motif >= 12 ? 2 : motif === 14 ? 3 : 0;
+        drawPlatformSprite(context, image, col, x - 8, y - 24, w + 16, 58);
         return;
       }
       context.fillStyle = color;
@@ -1024,6 +1027,38 @@ export default function Home() {
         context.fillRect(x + tile + 2, y + 8, 4, 4);
         context.fillRect(x + tile + 12, y + 14, 5, 5);
       }
+    };
+
+    const drawSolidGround = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, levelIndex: number) => {
+      context.fillStyle = color;
+      context.fillRect(x, y, w, h);
+      context.fillStyle = "rgba(255,255,255,0.18)";
+      context.fillRect(x, y, w, 7);
+      context.fillStyle = "rgba(0,0,0,0.2)";
+      context.fillRect(x, y + 12, w, h - 12);
+      const motif = levelIndex < 0 ? 0 : levelIndex % tracks.length;
+      const speck = motif === 7 ? "#7cced1" : motif >= 12 ? "#5c7a54" : "#2b2330";
+      context.fillStyle = speck;
+      for (let tile = 0; tile < w; tile += 22) {
+        const px = x + tile + ((tile * 7) % 11);
+        context.fillRect(px, y + 15 + ((tile * 5) % 22), 4, 4);
+      }
+    };
+
+    const drawPlatformSprite = (context: CanvasRenderingContext2D, image: HTMLImageElement, col: number, x: number, y: number, w: number, h: number) => {
+      const columns = 4;
+      const sourceW = image.naturalWidth / columns;
+      const sourceH = image.naturalHeight;
+      const sx = Math.max(0, Math.min(columns - 1, col)) * sourceW;
+      context.save();
+      context.imageSmoothingEnabled = false;
+      context.shadowColor = "rgba(0,0,0,0.38)";
+      context.shadowBlur = 8;
+      context.shadowOffsetY = 4;
+      context.drawImage(image, sx, 0, sourceW, sourceH, Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+      context.restore();
+      context.fillStyle = "rgba(255,255,255,0.25)";
+      context.fillRect(Math.round(x + 8), Math.round(y + 23), Math.max(8, Math.round(w - 16)), 3);
     };
 
     const drawObstacle = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, accent: string) => {
@@ -1128,24 +1163,32 @@ export default function Home() {
       context.fillRect(x + 7, y + 10, 4, 11);
     };
 
-    const drawEnemy = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, kind: number, pattern: Enemy["pattern"]) => {
-      const image = artImages.current[enemySpriteSheet];
+    const drawEnemy = (context: CanvasRenderingContext2D, enemy: Enemy, x: number, y: number, w: number, h: number, color: string) => {
+      const image = artImages.current[enemyAnimatedSpriteSheet];
       if (image?.complete && image.naturalWidth > 0) {
-        const frame = pattern === "charge" ? 3 : pattern === "sine" ? 2 : pattern === "hop" ? 1 : kind % 4;
-        const row = kind > 1 ? 1 : 0;
+        const typeRows: Record<string, number> = { cassette: 0, ghost: 1, mic: 2, firefly: 3, tv: 4, barrel: 5 };
+        const row = typeRows[String(enemy.type)] ?? 0;
+        const frame = enemy.pattern === "charge" && Math.floor(enemy.phase / 20) % 3 === 0 ? 3 : Math.floor(enemy.phase / 10) % 3;
         const columns = 4;
-        const rows = 2;
+        const rows = 6;
         const sourceW = image.naturalWidth / columns;
         const sourceH = image.naturalHeight / rows;
-        const drawW = pattern === "charge" ? 52 : pattern === "sine" ? 46 : 42;
-        const drawH = pattern === "sine" ? 50 : 44;
+        const drawW = enemy.pattern === "charge" ? 52 : enemy.pattern === "firefly" || enemy.pattern === "fly" ? 48 : 42;
+        const drawH = enemy.pattern === "firefly" || enemy.pattern === "fly" ? 48 : 44;
         const drawX = Math.round(x + w / 2 - drawW / 2);
         const drawY = Math.round(y + h - drawH + 4);
         context.save();
         context.imageSmoothingEnabled = false;
         context.fillStyle = "rgba(0,0,0,0.28)";
         context.fillRect(drawX + 7, y + h - 2, drawW - 14, 6);
-        context.drawImage(image, frame * sourceW, row * sourceH, sourceW, sourceH, drawX, drawY, drawW, drawH);
+        const direction = enemy.vx < 0 ? -1 : 1;
+        if (direction < 0) {
+          context.translate(drawX + drawW, drawY);
+          context.scale(-1, 1);
+          context.drawImage(image, frame * sourceW, row * sourceH, sourceW, sourceH, 0, 0, drawW, drawH);
+        } else {
+          context.drawImage(image, frame * sourceW, row * sourceH, sourceW, sourceH, drawX, drawY, drawW, drawH);
+        }
         context.restore();
         return;
       }
@@ -1153,7 +1196,7 @@ export default function Home() {
       context.fillRect(x + 2, y + h - 2, w, 5);
       context.fillStyle = color;
       context.fillRect(x + 3, y + 7, w - 6, h - 9);
-      context.fillStyle = pattern === "charge" ? "#ffef70" : pattern === "hop" ? "#c7f9ff" : pattern === "sine" ? "#ffd1dc" : "rgba(255,255,255,0.24)";
+      context.fillStyle = enemy.pattern === "charge" ? "#ffef70" : enemy.pattern === "hop" ? "#c7f9ff" : enemy.pattern === "fly" || enemy.pattern === "firefly" ? "#ffd1dc" : "rgba(255,255,255,0.24)";
       context.fillRect(x + 7, y + 2, w - 14, 6);
       context.fillStyle = "rgba(255,255,255,0.22)";
       context.fillRect(x + 6, y + 9, w - 12, 5);
@@ -1161,10 +1204,10 @@ export default function Home() {
       context.fillRect(x + 8, y + 15, 5, 5);
       context.fillRect(x + w - 14, y + 15, 5, 5);
       context.fillRect(x + 12, y + h - 9, w - 24, 4);
-      context.fillStyle = kind === 0 ? "#fff0a6" : kind === 1 ? "#c7f9ff" : kind === 2 ? "#ffd1dc" : "#b8ffb1";
+      context.fillStyle = enemy.kind === 0 ? "#fff0a6" : enemy.kind === 1 ? "#c7f9ff" : enemy.kind === 2 ? "#ffd1dc" : "#b8ffb1";
       context.fillRect(x + 3, y + h - 5, 8, 6);
       context.fillRect(x + w - 11, y + h - 5, 8, 6);
-      if (pattern === "charge") {
+      if (enemy.pattern === "charge") {
         context.fillStyle = "#111";
         context.fillRect(x + 1, y + 10, 5, 6);
         context.fillRect(x + w - 6, y + 10, 5, 6);
@@ -1345,7 +1388,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v22</span>
+            <span className="kicker">Super Milo J v23</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">

@@ -29,6 +29,8 @@ const artAssets = [
   "public/art/milo-spritesheet.png",
   "public/art/terrain-spritesheet.png",
   "public/art/enemy-spritesheet.png",
+  "public/art/platform-spritesheet.png",
+  "public/art/enemy-animated-spritesheet.png",
   "public/art/bg-00-tutorial.png",
   "public/art/bg-01-bajo-de-la-piel.png",
   "public/art/bg-02-nino.png",

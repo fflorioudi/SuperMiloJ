@@ -39,21 +39,51 @@ export function freshPlayer() {
 }
 
 export function makeEnemy(x, y, level, seed) {
-  const patterns = level < 3 ? ["walk"] : level < 7 ? ["walk", "hop"] : level < 11 ? ["walk", "hop", "sine"] : ["walk", "hop", "sine", "charge"];
-  const pattern = patterns[(seed + level) % patterns.length];
-  const speed = 0.62 + level * 0.035 + (pattern === "charge" ? 0.22 : 0);
+  const rosters = [
+    ["cassette"],
+    ["cassette", "tv"],
+    ["cassette", "tv", "ghost"],
+    ["cassette", "tv", "ghost", "mic"],
+    ["cassette", "tv", "ghost", "mic", "firefly"],
+    ["cassette", "tv", "ghost", "mic", "firefly", "barrel"],
+  ];
+  const roster = rosters[Math.min(rosters.length - 1, Math.floor(level / 3))];
+  const type = roster[(seed * 2 + level) % roster.length];
+  const patternByType = {
+    cassette: "walk",
+    tv: "hop",
+    ghost: "fly",
+    mic: "charge",
+    firefly: "firefly",
+    barrel: "roll",
+  };
+  const pattern = patternByType[type];
+  const difficulty = level / Math.max(1, tracks.length - 1);
+  const speedBase = 0.5 + difficulty * 0.42 + ((seed * 17 + level * 9) % 16) / 100;
+  const speedByType = {
+    cassette: speedBase,
+    tv: speedBase * 0.86,
+    ghost: speedBase * 0.78,
+    mic: speedBase * 1.18,
+    firefly: speedBase * 0.74,
+    barrel: speedBase * 1.05,
+  };
+  const speed = speedByType[type];
   return {
     x,
     y,
     baseY: y,
     vx: speed,
     min: x - 22,
-    max: x + 96 + level * 6,
-    w: pattern === "charge" ? 36 : 30,
-    h: pattern === "sine" ? 28 : 30,
+    max: x + 82 + level * 5 + ((seed * 11) % 42),
+    w: pattern === "charge" ? 38 : pattern === "firefly" || pattern === "fly" ? 34 : 30,
+    h: pattern === "firefly" || pattern === "fly" ? 28 : 30,
     kind: (seed + level) % 4,
     pattern,
-    phase: seed * 31,
+    type,
+    phase: seed * 31 + level * 13,
+    amp: 16 + ((seed * 19 + level * 7) % 28),
+    period: 26 + ((seed * 23 + level * 5) % 34),
   };
 }
 
@@ -351,14 +381,17 @@ export function resolveSolidCollision(entity, solid, previousX, previousY) {
 export function moveEnemy(enemy, obstacles = []) {
   if (enemy.x < -1000) return;
   const previousX = enemy.x;
-  const previousY = enemy.y;
   enemy.phase += 1;
-  const chargeBoost = enemy.pattern === "charge" && Math.floor(enemy.phase / 95) % 2 === 1 ? 1.9 : 1;
-  enemy.x += enemy.vx * chargeBoost;
-  if (enemy.pattern === "hop") enemy.y = enemy.baseY - Math.max(0, Math.sin(enemy.phase / 18)) * 28;
-  if (enemy.pattern === "sine") enemy.y = enemy.baseY + Math.sin(enemy.phase / 22) * 34;
+  const chargeBoost = enemy.pattern === "charge" && Math.floor(enemy.phase / enemy.period) % 3 === 1 ? 2.25 : 1;
+  const drift = enemy.pattern === "firefly" ? Math.sin(enemy.phase / 17) * 0.45 : 0;
+  enemy.x += enemy.vx * chargeBoost + drift;
+  if (enemy.pattern === "hop") enemy.y = enemy.baseY - Math.max(0, Math.sin(enemy.phase / enemy.period)) * enemy.amp;
+  if (enemy.pattern === "fly") enemy.y = enemy.baseY + Math.sin(enemy.phase / enemy.period) * enemy.amp;
+  if (enemy.pattern === "firefly") enemy.y = enemy.baseY + Math.sin(enemy.phase / enemy.period) * enemy.amp + Math.sin(enemy.phase / 9) * 7;
+  if (enemy.pattern === "roll") enemy.y = enemy.baseY + Math.sin(enemy.phase / 8) * 2;
   if (enemy.pattern === "walk" || enemy.pattern === "charge") enemy.y = enemy.baseY;
   if (enemy.x < enemy.min || enemy.x > enemy.max) enemy.vx *= -1;
+  if (enemy.pattern === "fly" || enemy.pattern === "firefly") return;
   for (const obstacle of obstacles) {
     const speed = Math.abs(enemy.vx);
     const hitSide = resolveHorizontalCollision(enemy, obstacle, previousX);
