@@ -26,9 +26,25 @@ function audioExists(audio) {
 
 const artAssets = [
   "public/art/super-milo-title.png",
-  "public/art/bg-barrio.png",
-  "public/art/bg-ciudad-noche.png",
-  "public/art/bg-monte-rio.png",
+  "public/art/milo-spritesheet.png",
+  "public/art/terrain-spritesheet.png",
+  "public/art/enemy-spritesheet.png",
+  "public/art/bg-00-tutorial.png",
+  "public/art/bg-01-bajo-de-la-piel.png",
+  "public/art/bg-02-nino.png",
+  "public/art/bg-03-gil.png",
+  "public/art/bg-04-ama-de-mi-sol.png",
+  "public/art/bg-05-solifican12.png",
+  "public/art/bg-06-lucia.png",
+  "public/art/bg-07-mmmm.png",
+  "public/art/bg-08-llora-llora.png",
+  "public/art/bg-09-recorde.png",
+  "public/art/bg-10-cuando-el-agua-hirviendo.png",
+  "public/art/bg-11-la-vida-era-mas-corta.png",
+  "public/art/bg-12-radamel.png",
+  "public/art/bg-13-el-invisible.png",
+  "public/art/bg-14-luciernagas.png",
+  "public/art/bg-15-jangadero.png",
 ];
 
 function runPlayerRoute(world, style = {}) {

@@ -225,3 +225,11 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Se agrego una pose visual de mate/celebracion usando el frame final del spritesheet.
 - Se corrigio el cierre del nivel para que Milo se quede quieto en pose de victoria al llegar al Obelisco.
 - Se actualizo la etiqueta interna a `Super Milo J v21`.
+
+### v22
+
+- Se apagaron las animaciones de fondo dibujadas por canvas para dejar respirar los paisajes PNG.
+- Se agrego `public/art/terrain-spritesheet.png` con plataformas, suelos y obstaculos pixel art de mayor produccion.
+- Se agrego `public/art/enemy-spritesheet.png` con enemigos mas detallados y siluetas distintas.
+- Plataformas, paredes y enemigos ahora se renderizan desde PNGs, manteniendo las hitbox rectangulares para no romper la jugabilidad.
+- El QA valida que existan los nuevos spritesheets de terreno y enemigos.

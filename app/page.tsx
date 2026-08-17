@@ -36,6 +36,8 @@ type SpriteFrame = SpriteRect[];
 
 const titleArt = "/art/super-milo-title.png";
 const miloSpriteSheet = "/art/milo-spritesheet.png";
+const terrainSpriteSheet = "/art/terrain-spritesheet.png";
+const enemySpriteSheet = "/art/enemy-spritesheet.png";
 const miloSpriteTrims = [
   [
     { x: 96, y: 123, w: 107, h: 257 },
@@ -214,7 +216,7 @@ export default function Home() {
     setProgress(saved);
     setUnlocked(Math.max(1, Math.min(tracks.length, saved.unlocked)));
     setMusicEnabled(Boolean(saved.musicEnabled));
-    [titleArt, miloSpriteSheet, ...backgroundArt].forEach((src) => {
+    [titleArt, miloSpriteSheet, terrainSpriteSheet, enemySpriteSheet, ...backgroundArt].forEach((src) => {
       const image = new Image();
       image.src = src;
       artImages.current[src] = image;
@@ -582,7 +584,6 @@ export default function Home() {
       context.fillStyle = track.sky;
       context.fillRect(0, 0, width, height);
       drawArtBackdrop(context, backgroundForLevel(levelIndex), cam);
-      drawLevelAtmosphere(context, levelIndex, cam, track);
     };
 
     const drawArtBackdrop = (context: CanvasRenderingContext2D, src: string, cam: number) => {
@@ -1000,6 +1001,17 @@ export default function Home() {
     };
 
     const drawPlatform = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, levelIndex: number) => {
+      const image = artImages.current[terrainSpriteSheet];
+      if (image?.complete && image.naturalWidth > 0) {
+        const isGround = h >= 60;
+        const motif = levelIndex < 0 ? 0 : levelIndex % tracks.length;
+        const col = isGround ? (motif < 3 ? 0 : motif < 8 ? 3 : motif < 12 ? 2 : 1) : (motif === 7 ? 1 : motif >= 12 ? 2 : motif === 14 ? 3 : 0);
+        const row = isGround ? 1 : 0;
+        const visualY = isGround ? y - 10 : y - 18;
+        const visualH = isGround ? h + 26 : 46;
+        drawTerrainTile(context, image, col, row, x, visualY, w, visualH, isGround ? 210 : 150);
+        return;
+      }
       context.fillStyle = color;
       context.fillRect(x, y, w, h);
       context.fillStyle = "rgba(255,255,255,0.24)";
@@ -1015,6 +1027,17 @@ export default function Home() {
     };
 
     const drawObstacle = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, accent: string) => {
+      const image = artImages.current[terrainSpriteSheet];
+      if (image?.complete && image.naturalWidth > 0) {
+        const col = Math.abs(Math.floor(x / 40)) % 4;
+        context.save();
+        context.shadowColor = "rgba(0,0,0,0.35)";
+        context.shadowBlur = 8;
+        context.shadowOffsetY = 4;
+        drawTerrainTile(context, image, col, 2, x - 14, y - 18, w + 28, h + 26, Math.max(70, w + 28));
+        context.restore();
+        return;
+      }
       context.fillStyle = color;
       context.fillRect(x, y, w, h);
       context.fillStyle = "rgba(0,0,0,0.24)";
@@ -1030,6 +1053,23 @@ export default function Home() {
         context.fillRect(x + 8, row, 5, 5);
         context.fillRect(x + w - 14, row + 8, 5, 5);
       }
+    };
+
+    const drawTerrainTile = (context: CanvasRenderingContext2D, image: HTMLImageElement, col: number, row: number, x: number, y: number, w: number, h: number, tileW: number) => {
+      const columns = 4;
+      const rows = 3;
+      const sourceW = image.naturalWidth / columns;
+      const sourceH = image.naturalHeight / rows;
+      const sx = Math.max(0, Math.min(columns - 1, col)) * sourceW;
+      const sy = Math.max(0, Math.min(rows - 1, row)) * sourceH;
+      const repeatW = Math.max(24, Math.min(tileW, w));
+      context.save();
+      context.imageSmoothingEnabled = false;
+      for (let dx = 0; dx < w; dx += repeatW) {
+        const dw = Math.min(repeatW, w - dx);
+        context.drawImage(image, sx, sy, sourceW, sourceH, Math.round(x + dx), Math.round(y), Math.ceil(dw), Math.round(h));
+      }
+      context.restore();
     };
 
     const drawCheckpoint = (context: CanvasRenderingContext2D, x: number, y: number, active: boolean, accent: string) => {
@@ -1089,6 +1129,26 @@ export default function Home() {
     };
 
     const drawEnemy = (context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, kind: number, pattern: Enemy["pattern"]) => {
+      const image = artImages.current[enemySpriteSheet];
+      if (image?.complete && image.naturalWidth > 0) {
+        const frame = pattern === "charge" ? 3 : pattern === "sine" ? 2 : pattern === "hop" ? 1 : kind % 4;
+        const row = kind > 1 ? 1 : 0;
+        const columns = 4;
+        const rows = 2;
+        const sourceW = image.naturalWidth / columns;
+        const sourceH = image.naturalHeight / rows;
+        const drawW = pattern === "charge" ? 52 : pattern === "sine" ? 46 : 42;
+        const drawH = pattern === "sine" ? 50 : 44;
+        const drawX = Math.round(x + w / 2 - drawW / 2);
+        const drawY = Math.round(y + h - drawH + 4);
+        context.save();
+        context.imageSmoothingEnabled = false;
+        context.fillStyle = "rgba(0,0,0,0.28)";
+        context.fillRect(drawX + 7, y + h - 2, drawW - 14, 6);
+        context.drawImage(image, frame * sourceW, row * sourceH, sourceW, sourceH, drawX, drawY, drawW, drawH);
+        context.restore();
+        return;
+      }
       context.fillStyle = "rgba(0,0,0,0.24)";
       context.fillRect(x + 2, y + h - 2, w, 5);
       context.fillStyle = color;
@@ -1285,7 +1345,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v21</span>
+            <span className="kicker">Super Milo J v22</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">
