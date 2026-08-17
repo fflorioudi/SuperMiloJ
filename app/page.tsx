@@ -17,6 +17,7 @@ import {
   rectsOverlap,
   resolveHorizontalCollision,
   resolvePlatformLanding,
+  resolveSolidCollision,
   resolveVerticalCollision,
   resizePlayerKeepingFeet,
   snapPlayerToFloor,
@@ -400,7 +401,7 @@ export default function Home() {
         persistProgress(nextProgress);
         return finalScore;
       });
-      setStatus(level === tracks.length - 1 ? "El album queda prendido en el Obelisco." : `Cerraste ${tracks[level].title}. La proxima cancion ya espera.`);
+      setStatus(level === tracks.length - 1 ? "Ultima bandera arriba: el album queda prendido en el Obelisco." : `Cerraste ${tracks[level].title}. Respira un segundo: la proxima cancion ya espera.`);
     };
 
     const step = () => {
@@ -493,14 +494,42 @@ export default function Home() {
         for (const mate of world.mates) {
           if (mate.collected) continue;
           mate.vy += 0.28;
+          const mateBody = { x: mate.x, y: mate.y, w: 22, h: 26, vx: mate.vx, vy: mate.vy, grounded: false };
+          const solids = [
+            ...world.obstacles,
+            ...world.blocks.map((block) => ({ x: block.x, y: block.y + block.bump, w: 34, h: 34 })),
+          ];
+          const previousMateX = mateBody.x;
           mate.x += mate.vx;
+          mateBody.x = mate.x;
+          for (const solid of solids) {
+            const hit = resolveHorizontalCollision(mateBody, solid, previousMateX);
+            if (!hit) continue;
+            mate.vx = hit === "left" ? -Math.abs(mate.vx) * 0.55 : Math.abs(mate.vx) * 0.55;
+            mate.x = mateBody.x;
+            break;
+          }
+          const previousMateY = mateBody.y;
           mate.y += mate.vy;
+          mateBody.x = mate.x;
+          mateBody.y = mate.y;
+          mateBody.vx = mate.vx;
+          mateBody.vy = mate.vy;
           for (const platform of world.platforms) {
-            if (rectsOverlap({ x: mate.x, y: mate.y, w: 22, h: 26 }, platform) && mate.vy > 0) {
-              mate.y = platform.y - 26;
-              mate.vy = -1.2;
+            if (resolvePlatformLanding(mateBody, platform, previousMateY, 8)) {
+              mate.y = mateBody.y;
+              mate.vy = -1.05;
               mate.vx *= 0.98;
             }
+          }
+          for (const solid of solids) {
+            const hit = resolveSolidCollision(mateBody, solid, mate.x, previousMateY);
+            if (!hit) continue;
+            mate.x = mateBody.x;
+            mate.y = mateBody.y;
+            mate.vy = hit === "top" ? -1.05 : 0.4;
+            mate.vx *= 0.72;
+            break;
           }
           if (rectsOverlap(p, { x: mate.x, y: mate.y, w: 22, h: 26 })) {
             mate.collected = true;
@@ -1162,9 +1191,9 @@ export default function Home() {
         context.fillRect(Math.round(x + 4), Math.round(y + 54), 56, 7);
         context.drawImage(image, Math.round(x - 8), Math.round(y - 34), 86, 92);
         if (active) {
-          context.globalAlpha = 0.28;
           context.fillStyle = accent;
-          context.fillRect(Math.round(x - 4), Math.round(y - 28), 78, 88);
+          context.fillRect(Math.round(x + 13), Math.round(y + 18), 8, 5);
+          context.fillRect(Math.round(x + 24), Math.round(y + 18), 8, 5);
         }
         context.restore();
         return;
@@ -1192,12 +1221,6 @@ export default function Home() {
         context.imageSmoothingEnabled = false;
         context.fillStyle = "rgba(0,0,0,0.25)";
         context.fillRect(Math.round(x + 4), Math.round(y + 30), 30, 5);
-        if (hasMate && !hit) {
-          context.globalAlpha = 0.28;
-          context.fillStyle = accent;
-          context.fillRect(Math.round(x - 3), Math.round(y - 3), 40, 40);
-          context.globalAlpha = 1;
-        }
         context.drawImage(image, sx, 0, sourceW, image.naturalHeight, Math.round(x - 4), Math.round(y - 6), 42, 42);
         context.restore();
         return;
@@ -1250,10 +1273,6 @@ export default function Home() {
         const bob = Math.sin(tick.current / 10) * 2;
         context.fillStyle = "rgba(0,0,0,0.24)";
         context.fillRect(Math.round(x + 1), Math.round(y + 25), 28, 5);
-        context.globalAlpha = 0.32;
-        context.fillStyle = "#73f0bd";
-        context.fillRect(Math.round(x - 5), Math.round(y - 4 + bob), 38, 38);
-        context.globalAlpha = 1;
         context.drawImage(image, Math.round(x - 7), Math.round(y - 16 + bob), 44, 44);
         context.restore();
         return;
@@ -1340,10 +1359,6 @@ export default function Home() {
         context.imageSmoothingEnabled = false;
         context.fillStyle = "rgba(0,0,0,0.24)";
         context.fillRect(Math.round(x - 16), Math.round(y + 132), 124, 8);
-        context.globalAlpha = 0.24;
-        context.fillStyle = accent;
-        context.fillRect(Math.round(x + 14), Math.round(y + 8), 76, 130);
-        context.globalAlpha = 1;
         context.drawImage(image, Math.round(x - 24), Math.round(y - 40), 138, 178);
         context.restore();
         return;
