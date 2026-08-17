@@ -595,7 +595,7 @@ export default function Home() {
       for (const checkpoint of world.checkpoints) drawCheckpoint(context, checkpoint.x - cam, checkpoint.y, checkpoint.active, track.accent);
 
       drawObeliscoGoal(context, world.length - cam - 82, 330, track.accent);
-      drawMilo(context, p.x - cam, p.y, hurtFlash.current, p.powered, p.transformed, p.facing, track.accent, mateFlash.current, won || victoryPose.current);
+          drawMilo(context, p.x - cam, p.y, hurtFlash.current, p.powered, p.transformed, p.facing, track.accent, mateFlash.current, won || victoryPose.current);
       if (debugMode) drawDebug(context, world, p, cam);
       drawPixelText(context, track.title, 24, 18, 20, "#fff");
       drawPixelText(context, track.theme, 24, 44, 13, "rgba(255,255,255,0.82)");
@@ -1190,11 +1190,6 @@ export default function Home() {
         context.fillStyle = "rgba(0,0,0,0.26)";
         context.fillRect(Math.round(x + 4), Math.round(y + 54), 56, 7);
         context.drawImage(image, Math.round(x - 8), Math.round(y - 34), 86, 92);
-        if (active) {
-          context.fillStyle = accent;
-          context.fillRect(Math.round(x + 13), Math.round(y + 18), 8, 5);
-          context.fillRect(Math.round(x + 24), Math.round(y + 18), 8, 5);
-        }
         context.restore();
         return;
       }
@@ -1385,37 +1380,48 @@ export default function Home() {
     };
 
     const drawVictoryPanel = (context: CanvasRenderingContext2D, track: PlayableTrack, tutorial: boolean, levelIndex: number) => {
-      const panelX = 214;
-      const panelY = 154;
-      const panelW = 532;
-      const panelH = 188;
-      const title = tutorial ? "LISTO PARA SALIR" : levelIndex === tracks.length - 1 ? "ALBUM COMPLETO" : "CANCION SUPERADA";
+      const panelX = 170;
+      const panelY = 118;
+      const panelW = 620;
+      const panelH = 254;
+      const finalAlbum = levelIndex === tracks.length - 1;
+      const title = tutorial ? "EL VIAJE ESTA POR ARRANCAR" : finalAlbum ? "SUPER MILO J COMPLETADO" : "CANCION GUARDADA";
       const main = tutorial
-        ? "Ya tenes salto, mate y checkpoint."
-        : levelIndex === tracks.length - 1
-          ? "Llegaste al Obelisco con el disco entero."
-          : `${track.title} queda en la ruta.`;
+        ? "Ya tenes lo basico: saltar con ritmo, leer checkpoints y esperar el mate raro."
+        : finalAlbum
+          ? "Llegaste al Obelisco con todo el album encima. La bandera queda arriba."
+          : `${track.title} ya quedo marcada en la ruta.`;
       const sub = tutorial
-        ? "Ahora empieza el viaje por las 15 canciones."
-        : levelIndex === tracks.length - 1
-          ? "La bandera queda arriba. Viaje completo."
-          : "Respira un segundo. La proxima ya espera.";
-      const cta = tutorial ? "ENTRAR AL ALBUM" : levelIndex === tracks.length - 1 ? "VOLVER A JUGAR" : "SIGUIENTE CANCION";
+        ? "Ahora empieza el album: cada pista suma una vuelta nueva, mas altura y menos margen."
+        : finalAlbum
+          ? "Volver a jugar ahora es buscar mejores notas, menos vidas perdidas y una pasada mas limpia."
+          : "La proxima cancion no va a regalar el camino: respira, mira el ritmo y sali de nuevo.";
+      const cta = tutorial ? "ENTER / EMPEZAR EL ALBUM" : finalAlbum ? "ENTER / VOLVER A INTENTAR" : "ENTER / SIGUIENTE PISTA";
       context.save();
-      context.fillStyle = "rgba(6,8,16,0.82)";
+      context.fillStyle = "rgba(5,7,14,0.88)";
       context.fillRect(panelX, panelY, panelW, panelH);
-      context.fillStyle = "rgba(255,255,255,0.08)";
-      context.fillRect(panelX + 8, panelY + 8, panelW - 16, panelH - 16);
+      const gradient = context.createLinearGradient(panelX, panelY, panelX + panelW, panelY + panelH);
+      gradient.addColorStop(0, "rgba(255,255,255,0.12)");
+      gradient.addColorStop(0.42, "rgba(255,255,255,0.035)");
+      gradient.addColorStop(1, "rgba(0,0,0,0.18)");
+      context.fillStyle = gradient;
+      context.fillRect(panelX + 10, panelY + 10, panelW - 20, panelH - 20);
       context.fillStyle = track.accent;
-      context.fillRect(panelX, panelY, panelW, 5);
-      context.fillRect(panelX, panelY + panelH - 5, panelW, 5);
-      context.fillRect(panelX, panelY, 5, panelH);
-      context.fillRect(panelX + panelW - 5, panelY, 5, panelH);
-      drawObeliscoGoal(context, panelX + 20, panelY - 18, track.accent);
-      drawPixelText(context, title, panelX + 138, panelY + 34, 26, track.accent);
-      drawPixelText(context, main, panelX + 138, panelY + 78, 14, "#fff");
-      drawPixelText(context, sub, panelX + 138, panelY + 108, 13, "rgba(255,255,255,0.86)");
-      drawPixelText(context, cta, panelX + 138, panelY + 150, 13, "#73f0bd");
+      context.fillRect(panelX, panelY, panelW, 6);
+      context.fillRect(panelX, panelY + panelH - 6, panelW, 6);
+      context.fillRect(panelX, panelY, 6, panelH);
+      context.fillRect(panelX + panelW - 6, panelY, 6, panelH);
+      context.fillStyle = "rgba(255,255,255,0.16)";
+      context.fillRect(panelX + 22, panelY + 22, 138, 180);
+      drawObeliscoGoal(context, panelX + 48, panelY + 12, track.accent);
+      drawPixelText(context, title, panelX + 190, panelY + 42, 25, track.accent);
+      drawPixelText(context, main, panelX + 190, panelY + 90, 14, "#fff");
+      drawPixelText(context, sub, panelX + 190, panelY + 126, 13, "rgba(255,255,255,0.86)");
+      drawPixelText(context, cta, panelX + 190, panelY + 184, 14, "#73f0bd");
+      context.fillStyle = "rgba(255,255,255,0.18)";
+      context.fillRect(panelX + 190, panelY + 160, 260, 3);
+      context.fillStyle = track.accent;
+      context.fillRect(panelX + 190, panelY + 160, 118, 3);
       context.restore();
     };
 
@@ -1435,8 +1441,8 @@ export default function Home() {
             ? 1 + (Math.floor(tick.current / 9) % 3)
             : 0;
       if (sheet?.complete && sheet.naturalWidth > 0) {
-        if ((transformed && powered > 0) || mateGlow > 0 || victory) {
-          context.fillStyle = victory ? "rgba(255,213,74,0.24)" : "rgba(115,240,189,0.26)";
+        if ((transformed && powered > 0) || mateGlow > 0) {
+          context.fillStyle = "rgba(115,240,189,0.18)";
           context.fillRect(x - 10, y - 16, 58, 84);
         }
         drawMiloFromSheet(context, sheet, frameIndex, transformed ? 1 : 0, x, y, facing);
@@ -1444,8 +1450,8 @@ export default function Home() {
       }
       const spriteSet = transformed ? miloSprites.actual : miloSprites.chico;
       const frame = spriteSet[frameName];
-      if ((transformed && powered > 0) || mateGlow > 0 || victory) {
-        context.fillStyle = victory ? "rgba(255,213,74,0.24)" : "rgba(115,240,189,0.26)";
+      if ((transformed && powered > 0) || mateGlow > 0) {
+        context.fillStyle = "rgba(115,240,189,0.18)";
         context.fillRect(x - 6, y - 8, 48, 72);
       }
       drawSpriteFrame(context, frame, x, transformed ? y - 8 : y, facing, accent);
@@ -1571,7 +1577,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v26</span>
+            <span className="kicker">Super Milo J v27</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">

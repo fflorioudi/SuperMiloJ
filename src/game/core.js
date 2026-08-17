@@ -38,7 +38,7 @@ export function freshPlayer() {
   return { x: 60, y: 360, spawnX: 60, spawnY: 360, checkpointIndex: 0, vx: 0, vy: 0, w: 32, h: 62, grounded: false, invincible: 0, powered: 0, transformed: false, facing: 1 };
 }
 
-export function makeEnemy(x, y, level, seed) {
+export function makeEnemy(x, y, level, seed, forcedType = null) {
   const rosters = [
     ["cassette"],
     ["cassette", "tv"],
@@ -48,7 +48,7 @@ export function makeEnemy(x, y, level, seed) {
     ["cassette", "tv", "ghost", "mic", "firefly", "barrel"],
   ];
   const roster = rosters[Math.min(rosters.length - 1, Math.floor(level / 3))];
-  const type = roster[(seed * 2 + level) % roster.length];
+  const type = forcedType ?? roster[(seed * 2 + level) % roster.length];
   const patternByType = {
     cassette: "walk",
     tv: "hop",
@@ -59,7 +59,7 @@ export function makeEnemy(x, y, level, seed) {
   };
   const pattern = patternByType[type];
   const difficulty = level / Math.max(1, tracks.length - 1);
-  const speedBase = 0.5 + difficulty * 0.42 + ((seed * 17 + level * 9) % 16) / 100;
+  const speedBase = 0.56 + difficulty * 0.56 + ((seed * 17 + level * 9) % 18) / 100;
   const speedByType = {
     cassette: speedBase,
     tv: speedBase * 0.86,
@@ -94,8 +94,11 @@ export function makeEnemy(x, y, level, seed) {
     pattern,
     type,
     phase: seed * 31 + level * 13,
-    amp: 16 + ((seed * 19 + level * 7) % 28),
-    period: 26 + ((seed * 23 + level * 5) % 34),
+    amp: 18 + Math.floor(difficulty * 12) + ((seed * 19 + level * 7) % 30),
+    period: Math.max(18, 34 - Math.floor(difficulty * 8) + ((seed * 23 + level * 5) % 28)),
+    wait: 20 + ((seed * 17 + level * 11) % 42),
+    burst: 20 + ((seed * 13 + level * 7) % 36),
+    style: (seed + level * 3) % 4,
   };
 }
 
@@ -110,7 +113,7 @@ export function makeWorld(level) {
   const obstacles = [];
   const obstacleAnchors = [];
   const checkpoints = [];
-  const platformCount = 11 + Math.floor(level * 0.92);
+  const platformCount = 12 + Math.floor(level * 1.05);
   const mateBlockIndexes = new Set(level < 6 ? [3] : level < 11 ? [4] : [3, 9]);
   const groundChunk = length + 360;
 
@@ -121,6 +124,7 @@ export function makeWorld(level) {
   for (let i = 0; i < platformCount; i += 1) {
     const gap = 232 + Math.floor(difficulty * 42);
     const x = 410 + i * gap + ((i * 37 + level * 29) % 72);
+    if (x > length - 360) continue;
     const lift = level < 3 ? 0 : Math.floor((i % 3) * difficulty * 18);
     const y = 410 - ((i + level) % 3) * (28 + Math.floor(difficulty * 8)) - lift;
     const w = Math.max(84, 164 - Math.floor(difficulty * 42) - ((i + level) % 3) * 8);
@@ -165,7 +169,7 @@ export function makeWorld(level) {
     if (wall) obstacles.push(wall);
   }
 
-  const desiredGateCount = level < 4 ? 1 : 2;
+  const desiredGateCount = level < 2 ? 1 : level < 6 ? 2 : level < 11 ? 3 : 4;
   if (obstacles.length > desiredGateCount) obstacles.splice(desiredGateCount);
   for (let i = obstacles.length; i < desiredGateCount; i += 1) {
     const wallY = Math.max(360, 392 - level * 2);
@@ -185,16 +189,31 @@ export function makeWorld(level) {
 
   for (const obstacle of obstacles) {
     if (obstacle.h < 92) continue;
-    const helperY = 410;
-    const before = { x: obstacle.x - 194, y: helperY, w: 158, h: 20 };
-    const after = { x: obstacle.x + obstacle.w + 30, y: helperY, w: 158, h: 20 };
-    for (const helper of [before, after]) {
+    const helperY = 412 - Math.min(42, Math.floor(level * 3.2));
+    const highHelperY = helperY - 44 - Math.min(18, Math.floor(level * 1.4));
+    const before = { x: obstacle.x - 208, y: helperY, w: 148, h: 20, challenge: true };
+    const bridge = { x: obstacle.x - 20, y: highHelperY, w: 92, h: 20, challenge: true };
+    const after = { x: obstacle.x + obstacle.w + 42, y: helperY, w: 148, h: 20, challenge: true };
+    const gateHelpers = level < 4 ? [before, after] : [before, bridge, after];
+    for (const helper of gateHelpers) {
       const overlaps = platforms.some((platform) => platform.y < 455 && rectsOverlap(helper, platform));
       if (!overlaps && helper.x > 240 && helper.x + helper.w < length - 220) {
         platforms.push(helper);
         notes.push({ x: helper.x + 36, y: helper.y - 34, collected: false });
       }
     }
+    const gateSeed = Math.floor(obstacle.x / 37) + level * 11;
+    const groundGuardType = level < 3 ? "cassette" : level < 7 ? "tv" : level < 11 ? "mic" : "barrel";
+    const platformGuardType = level < 5 ? "cassette" : level < 9 ? "ghost" : level < 13 ? "firefly" : "mic";
+    const groundGuard = makeEnemy(obstacle.x - 92, obstacle.y - 30, level, gateSeed, groundGuardType);
+    groundGuard.min = Math.max(80, obstacle.x - 168);
+    groundGuard.max = Math.max(groundGuard.min + 24, obstacle.x - groundGuard.w - 12);
+    enemies.push(groundGuard);
+    const perch = gateHelpers[Math.min(gateHelpers.length - 1, 1)];
+    const airGuard = makeEnemy(perch.x + 18, perch.y - 30, level, gateSeed + 5, platformGuardType);
+    airGuard.min = Math.max(perch.x + 4, airGuard.x - 28);
+    airGuard.max = Math.min(perch.x + perch.w - airGuard.w - 4, airGuard.x + 74 + level * 3);
+    enemies.push(airGuard);
   }
 
   for (const enemy of enemies) {
@@ -225,10 +244,22 @@ export function makeWorld(level) {
     notes.push({ x: 170 + i * (230 - Math.floor(difficulty * 28)), y: 420 - ((i * 37 + level * 19) % 105), collected: false });
   }
 
-  enemies.push(makeEnemy(length - 360, 436, level, 99));
+  const finalEnemy = makeEnemy(length - 360, 436, level, 99);
+  for (const obstacle of obstacles) {
+    const patrolCrossesWall = finalEnemy.baseY + finalEnemy.h > obstacle.y && finalEnemy.min < obstacle.x + obstacle.w && finalEnemy.max + finalEnemy.w > obstacle.x;
+    if (!patrolCrossesWall) continue;
+    if (finalEnemy.x < obstacle.x) finalEnemy.max = Math.min(finalEnemy.max, obstacle.x - finalEnemy.w - 8);
+    else finalEnemy.min = Math.max(finalEnemy.min, obstacle.x + obstacle.w + 8);
+    if (finalEnemy.max <= finalEnemy.min) {
+      finalEnemy.x = finalEnemy.x < obstacle.x ? obstacle.x + obstacle.w + 36 : obstacle.x - finalEnemy.w - 36;
+      finalEnemy.min = finalEnemy.x - 10;
+      finalEnemy.max = finalEnemy.x + 46;
+    }
+  }
+  enemies.push(finalEnemy);
   const finalPlatform = { x: length - 260, y: 412 - Math.floor(difficulty * 52), w: 130 - Math.floor(difficulty * 22), h: 20 };
   const finalPlatformClearance = { x: finalPlatform.x - 28, y: finalPlatform.y - 28, w: finalPlatform.w + 56, h: finalPlatform.h + 56 };
-  if (!platforms.some((platform) => platform.y < 455 && rectsOverlap(finalPlatformClearance, platform))) {
+  if (!platforms.some((platform) => platform.y < 455 && rectsOverlap(finalPlatformClearance, platform)) && !obstacles.some((obstacle) => rectsOverlap(finalPlatformClearance, obstacle))) {
     platforms.push(finalPlatform);
   }
   return { platforms, notes, blocks, mates, enemies, obstacles, checkpoints, length };
@@ -430,12 +461,16 @@ export function moveEnemy(enemy, obstacles = []) {
   if (enemy.x < -1000) return;
   const previousX = enemy.x;
   enemy.phase += 1;
-  const chargeBoost = enemy.pattern === "charge" && Math.floor(enemy.phase / enemy.period) % 3 === 1 ? 2.25 : 1;
-  const drift = enemy.pattern === "firefly" ? Math.sin(enemy.phase / 17) * 0.45 : 0;
-  enemy.x += enemy.vx * chargeBoost + drift;
-  if (enemy.pattern === "hop") enemy.y = enemy.baseY - Math.max(0, Math.sin(enemy.phase / enemy.period)) * enemy.amp;
-  if (enemy.pattern === "fly") enemy.y = enemy.baseY + Math.sin(enemy.phase / enemy.period) * enemy.amp;
-  if (enemy.pattern === "firefly") enemy.y = enemy.baseY + Math.sin(enemy.phase / enemy.period) * enemy.amp + Math.sin(enemy.phase / 9) * 7;
+  const cycle = enemy.wait + enemy.burst + 18;
+  const cycleFrame = enemy.phase % cycle;
+  const chargeBoost = enemy.pattern === "charge" && cycleFrame > enemy.wait && cycleFrame < enemy.wait + enemy.burst ? 2.75 : enemy.pattern === "charge" ? 0.32 : 1;
+  const rollBoost = enemy.pattern === "roll" && Math.floor(enemy.phase / Math.max(12, enemy.period * 0.55)) % 2 === 0 ? 1.45 : 0.75;
+  const hopPause = enemy.pattern === "hop" && cycleFrame < enemy.wait * 0.45 ? 0.28 : 1;
+  const drift = enemy.pattern === "firefly" ? Math.sin(enemy.phase / 17 + enemy.style) * 0.62 : 0;
+  enemy.x += enemy.vx * chargeBoost * rollBoost * hopPause + drift;
+  if (enemy.pattern === "hop") enemy.y = enemy.baseY - Math.max(0, Math.sin(enemy.phase / enemy.period + enemy.style * 0.4)) * enemy.amp;
+  if (enemy.pattern === "fly") enemy.y = enemy.baseY + Math.sin(enemy.phase / enemy.period + enemy.style * 0.7) * enemy.amp + Math.sin(enemy.phase / 31) * 5;
+  if (enemy.pattern === "firefly") enemy.y = enemy.baseY + Math.sin(enemy.phase / enemy.period + enemy.style) * enemy.amp + Math.sin(enemy.phase / 9) * 8;
   if (enemy.pattern === "roll") enemy.y = enemy.baseY + Math.sin(enemy.phase / 8) * 2;
   if (enemy.pattern === "walk" || enemy.pattern === "charge") enemy.y = enemy.baseY;
   if (enemy.x < enemy.min || enemy.x > enemy.max) enemy.vx *= -1;

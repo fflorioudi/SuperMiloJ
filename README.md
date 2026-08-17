@@ -272,3 +272,14 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Se mejoro el mensaje final para que sea mas amigable y contextual: tutorial, cancion superada y album completo tienen textos distintos.
 - Se corrigio la fisica del mate raro: ahora choca con muros y bloques solidos, rebota o cae sobre ellos en vez de atravesarlos.
 - El QA agrego pruebas especificas para el mate contra paredes y bloques, manteniendo las 800 corridas generales.
+
+### v27
+
+- Se eliminaron los dos pixels decorativos del checkpoint activo y el aura rectangular de Milo al cerrar un nivel.
+- Se rehizo el panel de cierre desde cero: mas grande, mas claro y con textos que empujan a seguir jugando o mejorar la pasada.
+- Se subio la dificultad desde diseno de nivel, no por cantidad bruta: mas puertas obligatorias, rutas por plataformas y mini secuencias alrededor de cada muro.
+- La curva de puertas ahora crece con el album: 1 puerta en niveles iniciales, 2 en tempranos/medios, 3 desde la mitad y 4 en los tramos finales.
+- Los enemigos de puertas tienen patrones mas variados: cargas con pausa, saltos con espera, vuelos con oscilacion extra, barriles con ritmo irregular y fases desincronizadas.
+- Se agregaron guardianes de ruta en zonas obligatorias para que pasar por abajo deje de ser la respuesta facil.
+- Se ajusto la generacion final para evitar que enemigos o plataformas nazcan pegados a muros.
+- El QA volvio a pasar 800 corridas con 0 niveles fallando despues de subir la dificultad.

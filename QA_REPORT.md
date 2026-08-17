@@ -31,6 +31,8 @@ Fecha: 2026-08-17
 - Se valida que cada nivel del album tenga obstaculos obligatorios para cortar la ruta de caminar derecho.
 - Se valida la tanda v26 sin auras rectangulares en objetos clave y con fisica de mate contra muros/bloques.
 - Se agregan pruebas puntuales para que el mate rebote contra paredes y aterrice sobre bloques solidos.
+- Se valida la tanda v27 con dificultad reforzada: mas puertas obligatorias, guardianes de ruta y patrones de enemigos desincronizados.
+- Se valida que la subida de dificultad mantenga rutas completables, patrullas fuera de muros y plataformas dentro de rangos seguros.
 
 ## Resultado
 
@@ -70,6 +72,10 @@ Fecha: 2026-08-17
 - La v26 elimina las auras/cuadrados de ayuda visual y deja que los assets PNG se integren mejor al fondo.
 - El mensaje final ahora distingue tutorial, cancion superada y album completo con textos mas calidos.
 - El mate raro ya no atraviesa muros ni bloques: usa colisiones solidas ademas de plataformas.
+- La v27 elimina los pixels decorativos del checkpoint activo y el aura rectangular de Milo al finalizar.
+- La pantalla de cierre se rehizo como panel de progreso, con texto mas motivador para seguir al proximo nivel o buscar una pasada mejor.
+- La dificultad ahora se apoya mas en composicion de rutas: puertas, plataformas obligatorias, guardianes y variacion de timing.
+- Los enemigos cargan, saltan, vuelan o ruedan con fases y pausas distintas para reducir patrones obvios.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba
