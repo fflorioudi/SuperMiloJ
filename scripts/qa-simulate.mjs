@@ -22,21 +22,39 @@ function audioExists(audio) {
   return candidates.some((candidate) => existsSync(candidate));
 }
 
-function runPlayerRoute(world) {
+const artAssets = [
+  "public/art/super-milo-title.png",
+  "public/art/bg-barrio.png",
+  "public/art/bg-ciudad-noche.png",
+  "public/art/bg-monte-rio.png",
+];
+
+function runPlayerRoute(world, style = {}) {
   const player = { ...freshPlayer() };
   let falls = 0;
   let finished = false;
+  let checkpointTouches = 0;
+  let maxAirFrames = 0;
+  let currentAirFrames = 0;
+  let obstacleJumps = 0;
+  const acceleration = style.acceleration ?? 0.42;
+  const maxSpeed = style.maxSpeed ?? 4.35;
+  const jumpPower = style.jumpPower ?? -10.4;
+  const lookAhead = style.lookAhead ?? 125;
+  const obstacleLookAhead = style.obstacleLookAhead ?? 86;
+  const platformVerticalRange = style.platformVerticalRange ?? 150;
 
   for (let frame = 0; frame < 6200; frame += 1) {
-    const obstacleAhead = world.obstacles.some((obstacle) => obstacle.x > player.x && obstacle.x < player.x + 86 && player.y + player.h > obstacle.y + 8);
-    const platformAhead = world.platforms.some((platform) => platform.y < 455 && platform.x > player.x + 12 && platform.x < player.x + 125 && platform.y > player.y - 150);
+    const obstacleAhead = world.obstacles.some((obstacle) => obstacle.x > player.x && obstacle.x < player.x + obstacleLookAhead && player.y + player.h > obstacle.y + 8);
+    const platformAhead = world.platforms.some((platform) => platform.y < 455 && platform.x > player.x + 12 && platform.x < player.x + lookAhead && platform.y > player.y - platformVerticalRange);
     if (player.grounded && (obstacleAhead || platformAhead)) {
-      player.vy = -10.4;
+      if (obstacleAhead) obstacleJumps += 1;
+      player.vy = jumpPower;
       player.grounded = false;
     }
 
-    player.vx += 0.42;
-    player.vx = Math.max(-4.35, Math.min(4.35, player.vx));
+    player.vx += acceleration;
+    player.vx = Math.max(-maxSpeed, Math.min(maxSpeed, player.vx));
     const previousX = player.x;
     player.x += player.vx;
     for (const obstacle of world.obstacles) resolveHorizontalCollision(player, obstacle, previousX);
@@ -49,12 +67,28 @@ function runPlayerRoute(world) {
     for (const platform of world.platforms) resolvePlatformLanding(player, platform, previousY, 12);
     for (const obstacle of world.obstacles) resolveVerticalCollision(player, obstacle, previousY, 12);
 
+    if (player.grounded) {
+      currentAirFrames = 0;
+    } else {
+      currentAirFrames += 1;
+      maxAirFrames = Math.max(maxAirFrames, currentAirFrames);
+    }
+
+    for (const checkpoint of world.checkpoints) {
+      if (!checkpoint.__qaTouched && rectsOverlap(player, checkpoint)) {
+        checkpoint.__qaTouched = true;
+        checkpointTouches += 1;
+      }
+    }
+
     if (player.y > height + 80) {
       falls += 1;
-      player.x = Math.max(30, player.x - 120);
-      player.y = 360;
+      const safe = findSafePlatform(player, world);
+      player.x = Math.max(30, safe.x + 12);
+      player.y = safe.y - player.h;
       player.vx = 0;
       player.vy = 0;
+      player.grounded = true;
     }
 
     if (player.x > world.length - 64) {
@@ -63,7 +97,7 @@ function runPlayerRoute(world) {
     }
   }
 
-  return { finished, falls, finalX: Math.round(player.x) };
+  return { finished, falls, finalX: Math.round(player.x), checkpointTouches, maxAirFrames, obstacleJumps };
 }
 
 const report = [];
@@ -73,6 +107,10 @@ const coreTests = [];
 function assertCore(name, condition, details = "") {
   coreTests.push({ name, passed: Boolean(condition), details });
   if (!condition) failures += 1;
+}
+
+for (const asset of artAssets) {
+  assertCore(`art asset exists: ${asset}`, existsSync(asset), asset);
 }
 
 {
@@ -146,19 +184,42 @@ function assertCore(name, condition, details = "") {
   assertCore("rect collision rejects separated boxes", !rectsOverlap({ x: 0, y: 0, w: 20, h: 20 }, { x: 40, y: 40, w: 20, h: 20 }));
 }
 
+const routeStyles = [
+  { name: "normal" },
+  { name: "conservative", acceleration: 0.36, maxSpeed: 3.85, jumpPower: -10.1, lookAhead: 112, obstacleLookAhead: 78 },
+  { name: "fast", acceleration: 0.48, maxSpeed: 4.8, jumpPower: -10.8, lookAhead: 138, obstacleLookAhead: 96 },
+  { name: "late-jump", acceleration: 0.43, maxSpeed: 4.25, jumpPower: -10.6, lookAhead: 104, obstacleLookAhead: 68, platformVerticalRange: 132 },
+  { name: "early-jump", acceleration: 0.4, maxSpeed: 4.1, jumpPower: -10.25, lookAhead: 150, obstacleLookAhead: 112, platformVerticalRange: 170 },
+];
+
 for (let level = 0; level < tracks.length; level += 1) {
   const world = makeWorld(level);
   const ground = world.platforms.find((platform) => platform.x === 0 && platform.y === 468);
   const issues = [];
+  const elevatedPlatforms = world.platforms.filter((platform) => platform.y < 455);
+  const mateBlocks = world.blocks.filter((block) => block.hasMate);
 
   if (!ground || ground.w < world.length) issues.push("ground does not cover full route");
   if (!audioExists(tracks[level].audio)) issues.push("audio missing");
+  if (world.length < 3350 + level * 245) issues.push("world length regressed");
+  if (elevatedPlatforms.length < 10 + Math.floor(level * 0.82)) issues.push("too few elevated platforms");
+  if (world.notes.length < 16 + Math.floor(level / 2)) issues.push("too few collectible notes");
+  if (mateBlocks.length === 0 || mateBlocks.length > (level < 11 ? 1 : 2)) issues.push("mate rarity outside expected range");
   if (world.blocks.some((block) => block.y < 80 || block.y > 430)) issues.push("block outside safe vertical range");
   if (world.notes.some((note) => note.y < 40 || note.y > 460)) issues.push("note outside safe vertical range");
   if (world.enemies.some((enemy) => enemy.y < 120 || enemy.y > 440 || enemy.min < 0 || enemy.max > world.length + 120)) issues.push("enemy outside expected patrol bounds");
   if (level >= 4 && world.obstacles.length === 0) issues.push("expected mandatory platform obstacles");
+  if (level >= 7 && world.checkpoints.length < 3) issues.push("expected third checkpoint in long levels");
   if (world.obstacles.some((obstacle) => obstacle.y < 360 || obstacle.y + obstacle.h !== 468 || obstacle.w < 36)) issues.push("obstacle collider does not seal ground route");
   if (world.obstacles.some((obstacle) => world.platforms.some((platform) => platform.y < 455 && rectsOverlap(obstacle, platform)))) issues.push("obstacle overlaps elevated platform");
+  if (elevatedPlatforms.some((platform) => platform.w < 72 || platform.w > 190 || platform.x < 0 || platform.x > world.length + 120)) issues.push("platform dimensions outside expected range");
+  if (
+    elevatedPlatforms.some((platform) =>
+      elevatedPlatforms.some((other) => platform !== other && Math.abs(platform.x - other.x) < 16 && Math.abs(platform.y - other.y) < 12),
+    )
+  ) {
+    issues.push("platform cluster too tight");
+  }
   if (
     world.enemies.some((enemy) =>
       world.obstacles.some((obstacle) => enemy.baseY + enemy.h > obstacle.y && enemy.min < obstacle.x + obstacle.w && enemy.max + enemy.w > obstacle.x),
@@ -168,9 +229,29 @@ for (let level = 0; level < tracks.length; level += 1) {
   }
   if (world.checkpoints.length < 2) issues.push("expected at least two checkpoints");
 
-  const runs = Array.from({ length: 10 }, () => runPlayerRoute(world));
+  for (const enemy of world.enemies.map((candidate) => ({ ...candidate }))) {
+    for (let frame = 0; frame < 420; frame += 1) {
+      moveEnemy(enemy, world.obstacles);
+      if (world.obstacles.some((obstacle) => rectsOverlap(enemy, obstacle))) {
+        issues.push("enemy penetrated wall during long patrol simulation");
+        break;
+      }
+    }
+  }
+
+  const runs = [];
+  for (const style of routeStyles) {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      runs.push({ style: style.name, ...runPlayerRoute(makeWorld(level), style) });
+    }
+  }
   const failedRuns = runs.filter((run) => !run.finished || run.falls > 0);
-  if (failedRuns.length > 0) issues.push(`${failedRuns.length}/10 route simulations failed or fell`);
+  const checkpointRuns = runs.filter((run) => run.checkpointTouches > 0);
+  const mandatoryJumpRuns = runs.filter((run) => run.obstacleJumps > 0);
+  if (failedRuns.length > 0) issues.push(`${failedRuns.length}/${runs.length} route simulations failed or fell`);
+  if (checkpointRuns.length === 0) issues.push("route simulations never touch checkpoints");
+  if (level >= 4 && mandatoryJumpRuns.length < runs.length * 0.55) issues.push("mandatory platform route not exercised enough");
+  if (runs.some((run) => run.maxAirFrames > 145)) issues.push("route produced suspiciously long air time");
 
   if (issues.length > 0) failures += 1;
   report.push({
@@ -178,9 +259,15 @@ for (let level = 0; level < tracks.length; level += 1) {
     title: tracks[level].title,
     runs: runs.length,
     passedRuns: runs.length - failedRuns.length,
+    routeStyles: routeStyles.map((style) => style.name),
     audio: audioExists(tracks[level].audio) ? "ok" : "missing",
+    checkpoints: world.checkpoints.length,
+    checkpointTouchRuns: checkpointRuns.length,
+    elevatedPlatforms: elevatedPlatforms.length,
+    obstacles: world.obstacles.length,
+    enemies: world.enemies.length,
     issues,
   });
 }
 
-console.log(JSON.stringify({ totalLevels: tracks.length, totalRuns: tracks.length * 10, failingLevels: failures, coreTests, report }, null, 2));
+console.log(JSON.stringify({ totalLevels: tracks.length, totalRuns: tracks.length * routeStyles.length * 10, routeStyles: routeStyles.map((style) => style.name), failingLevels: failures, coreTests, report }, null, 2));

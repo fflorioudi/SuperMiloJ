@@ -66,8 +66,8 @@ export function makeWorld(level) {
   }
 
   for (let i = 0; i < platformCount; i += 1) {
-    const gap = 240 + Math.floor(difficulty * 30) + ((i * 19 + level * 13) % 34);
-    const x = 410 + i * gap;
+    const gap = 250 + Math.floor(difficulty * 34);
+    const x = 410 + i * gap + ((i * 37 + level * 29) % 72);
     const lift = level < 3 ? 0 : Math.floor((i % 3) * difficulty * 18);
     const y = 410 - ((i + level) % 3) * (28 + Math.floor(difficulty * 8)) - lift;
     const w = Math.max(92, 170 - Math.floor(difficulty * 36) - ((i + level) % 3) * 8);
@@ -85,6 +85,11 @@ export function makeWorld(level) {
     if (level >= 4 && i > 0 && i % 3 === 1) {
       obstacleAnchors.push({ x, w });
     }
+  }
+
+  if (!blocks.some((block) => block.hasMate) && blocks.length > 0) {
+    const fallbackMate = blocks[Math.min(blocks.length - 1, level < 6 ? 2 : level < 11 ? 3 : 4)];
+    fallbackMate.hasMate = true;
   }
 
   for (const anchor of obstacleAnchors) {
@@ -119,7 +124,11 @@ export function makeWorld(level) {
   const checkpointCount = 2 + Math.floor(level / 7);
   for (let i = 1; i <= checkpointCount; i += 1) {
     const x = Math.floor((length / (checkpointCount + 1)) * i);
-    checkpoints.push({ x, y: 412, w: 28, h: 56, active: false });
+    const support = platforms
+      .filter((platform) => platform.y < 455 && x >= platform.x - 40 && x <= platform.x + platform.w + 40)
+      .sort((a, b) => Math.abs(x - (a.x + a.w / 2)) - Math.abs(x - (b.x + b.w / 2)))[0];
+    const checkpointGroundY = support ? support.y : 468;
+    checkpoints.push({ x: x - 24, y: checkpointGroundY - 56, w: 76, h: 56, spawnY: checkpointGroundY, active: false });
     notes.push({ x: x + 48, y: 392, collected: false });
   }
 
@@ -128,7 +137,11 @@ export function makeWorld(level) {
   }
 
   enemies.push(makeEnemy(length - 360, 436, level, 99));
-  platforms.push({ x: length - 260, y: 412 - Math.floor(difficulty * 52), w: 130 - Math.floor(difficulty * 22), h: 20 });
+  const finalPlatform = { x: length - 260, y: 412 - Math.floor(difficulty * 52), w: 130 - Math.floor(difficulty * 22), h: 20 };
+  const finalPlatformClearance = { x: finalPlatform.x - 28, y: finalPlatform.y - 28, w: finalPlatform.w + 56, h: finalPlatform.h + 56 };
+  if (!platforms.some((platform) => platform.y < 455 && rectsOverlap(finalPlatformClearance, platform))) {
+    platforms.push(finalPlatform);
+  }
   return { platforms, notes, blocks, mates, enemies, obstacles, checkpoints, length };
 }
 

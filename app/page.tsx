@@ -379,7 +379,7 @@ export default function Home() {
           checkpoint.active = true;
           p.checkpointIndex += 1;
           p.spawnX = checkpoint.x + 12;
-          p.spawnY = 468 - p.h;
+          p.spawnY = (checkpoint.spawnY ?? 468) - p.h;
           setStatus(`Checkpoint ${p.checkpointIndex}: si caes, volves aca.`);
         }
 

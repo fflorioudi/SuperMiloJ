@@ -5,8 +5,9 @@ Fecha: 2026-08-16
 ## Alcance
 
 - Se simularon 15 niveles.
-- Cada nivel fue recorrido 10 veces.
-- Total: 150 corridas automatizadas.
+- Cada nivel fue recorrido 50 veces.
+- Total: 750 corridas automatizadas.
+- Cada nivel se probo con 5 estilos de ruta: normal, conservador, rapido, salto tarde y salto temprano.
 - Se validaron ruta base, suelo continuo, llegada al Obelisco, audios locales, bloques, notas y enemigos.
 - El QA usa el nucleo compartido `src/game/core.js`, el mismo que importa la app.
 - Se agregaron pruebas puntuales para resize de power-up, snap a plataforma, respawn, movimiento enemigo y colisiones rectangulares.
@@ -19,15 +20,18 @@ Fecha: 2026-08-16
 - Se valida que Milo pueda pasar por debajo de plataformas one-way sin quedar aplastado ni atrapado.
 - Se valida que una plataforma bloquee el dano de un enemigo ubicado arriba cuando Milo esta debajo.
 - Se valida la version con portada y fondos PNG generados dentro de `public/art`.
+- Se valida que existan los assets de portada y las tres familias de fondos PNG.
+- Se valida rareza de mates, cantidad minima de notas, plataformas elevadas, enemigos, obstaculos y checkpoints.
+- Se simulan patrullas largas de enemigos contra muros para detectar penetraciones o rebotes rotos.
 
 ## Resultado
 
-- Corridas exitosas: 150/150.
+- Corridas exitosas: 750/750.
 - Niveles con fallos detectados: 0/15.
 - Audios detectados: 15/15.
 - Caidas durante la ruta base: 0.
 - Entidades fuera de rango: 0.
-- Core tests exitosos: 11/11.
+- Core tests exitosos: 15/15.
 
 ## Observaciones
 
@@ -40,6 +44,9 @@ Fecha: 2026-08-16
 - La portada y tres familias de fondos dejaron de depender de decorado rectangular y ahora usan PNG pixel art como base.
 - Las plataformas elevadas funcionan como piso al caer desde arriba, no como techo al pasar por debajo.
 - Los enemigos sobre plataformas ya no golpean a Milo a traves del piso.
+- Los checkpoints ahora pueden apoyarse en plataformas elevadas y respawnear a Milo en esa altura.
+- Se corrigio una formula de separacion que podia generar plataformas demasiado pegadas en niveles avanzados.
+- Si el patron de bloques dejaba un nivel sin mate, el generador ahora garantiza un mate raro sin hacerlo abundante.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba
@@ -50,5 +57,6 @@ npm run qa
 
 ## Proxima mejora de QA
 
-- Separar mas logica del loop principal para testear game over, recoleccion de notas y fin de nivel sin depender del canvas.
 - Agregar pruebas visuales con capturas por nivel.
+- Agregar pruebas especificas de power-up: tomar mate, mantener apariencia de Milo actual y perder solo el poder al recibir dano.
+- Agregar prueba de existencia para los 15 fondos por cancion cuando se generen.

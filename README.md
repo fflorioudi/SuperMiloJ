@@ -173,3 +173,12 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - El canvas ahora usa esos fondos como base ilustrada y encima suma atmosfera animada por nivel: lluvia, polvo, luces, luciernagas y detalles musicales.
 - Se redujo la dependencia de rectangulos gigantes en fondos y portada para que el juego se sienta mas como pixel art armado con intencion.
 - Se mantuvo el parche de hitbox para que un enemigo sobre plataforma no golpee a Milo desde abajo.
+
+### v16
+
+- El QA automatico paso de 150 a 750 corridas: 50 por nivel con cinco estilos de ruta distintos.
+- El QA ahora valida assets PNG, rareza de mates, cantidad de notas, plataformas elevadas, checkpoints, enemigos, obstaculos y patrullas largas contra muros.
+- Se corrigio la generacion de plataformas para evitar grupos demasiado pegados en niveles avanzados.
+- Se garantiza que cada nivel tenga mate raro aunque el patron de bloques deje afuera el indice original.
+- Los checkpoints pueden apoyarse sobre plataformas elevadas y respawnear a Milo en esa misma altura.
+- Se reescribio `README_NEXT_VERSION.md` como roadmap para fondos 15/15, spritesheet nueva de Milo, animaciones y QA visual.
