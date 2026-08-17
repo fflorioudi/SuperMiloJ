@@ -41,6 +41,10 @@ const enemySpriteSheet = "/art/enemy-spritesheet.png";
 const platformSpriteSheet = "/art/platform-spritesheet.png";
 const noteSpriteSheet = "/art/note-spritesheet.png";
 const groundSpriteSheet = "/art/ground-spritesheet.png";
+const blockSpriteSheet = "/art/block-spritesheet.png";
+const matePowerupSprite = "/art/mate-powerup.png";
+const checkpointSprite = "/art/checkpoint-flag.png";
+const obeliscoGoalSprite = "/art/obelisco-goal.png";
 const enemySpriteSheets = {
   cassette: "/art/enemies/enemy-cassette.png",
   ghost: "/art/enemies/enemy-ghost.png",
@@ -235,6 +239,10 @@ export default function Home() {
       platformSpriteSheet,
       noteSpriteSheet,
       groundSpriteSheet,
+      blockSpriteSheet,
+      matePowerupSprite,
+      checkpointSprite,
+      obeliscoGoalSprite,
       ...Object.values(enemySpriteSheets),
       ...backgroundArt,
     ].forEach((src) => {
@@ -392,7 +400,7 @@ export default function Home() {
         persistProgress(nextProgress);
         return finalScore;
       });
-      setStatus(level === tracks.length - 1 ? "Album completo en el Obelisco." : "Llegaste al Obelisco. Se abre la proxima cancion.");
+      setStatus(level === tracks.length - 1 ? "El album queda prendido en el Obelisco." : `Cerraste ${tracks[level].title}. La proxima cancion ya espera.`);
     };
 
     const step = () => {
@@ -565,10 +573,7 @@ export default function Home() {
       drawPixelText(context, `Notas ${score}  Vidas ${lives}  CP ${p.checkpointIndex}/${world.checkpoints.length}  Mate ${p.powered > 0 ? "PODER" : p.transformed ? "LOOK" : "RARO"}`, 430, 18, 14, "#fff");
 
       if (won) {
-        context.fillStyle = "rgba(10,12,20,0.76)";
-        context.fillRect(230, 174, 500, 150);
-        drawPixelText(context, "NIVEL COMPLETADO", 302, 206, 26, track.accent);
-        drawPixelText(context, isTutorial ? "Listo para el album" : level === tracks.length - 1 ? "Terminaste el album en el Obelisco" : "Se abre la proxima cancion", 318, 250, 15, "#fff");
+        drawVictoryPanel(context, track, isTutorial, level);
       }
       if (gameOver) {
         context.fillStyle = "rgba(10,12,20,0.82)";
@@ -1149,6 +1154,21 @@ export default function Home() {
     };
 
     const drawCheckpoint = (context: CanvasRenderingContext2D, x: number, y: number, active: boolean, accent: string) => {
+      const image = artImages.current[checkpointSprite];
+      if (image?.complete && image.naturalWidth > 0) {
+        context.save();
+        context.imageSmoothingEnabled = false;
+        context.fillStyle = "rgba(0,0,0,0.26)";
+        context.fillRect(Math.round(x + 4), Math.round(y + 54), 56, 7);
+        context.drawImage(image, Math.round(x - 8), Math.round(y - 34), 86, 92);
+        if (active) {
+          context.globalAlpha = 0.28;
+          context.fillStyle = accent;
+          context.fillRect(Math.round(x - 4), Math.round(y - 28), 78, 88);
+        }
+        context.restore();
+        return;
+      }
       context.fillStyle = "rgba(0,0,0,0.22)";
       context.fillRect(x - 8, y + 54, 46, 6);
       context.fillStyle = active ? "#73f0bd" : "#e9e2d0";
@@ -1164,6 +1184,24 @@ export default function Home() {
     };
 
     const drawQuestionBlock = (context: CanvasRenderingContext2D, x: number, y: number, hit: boolean, hasMate: boolean, accent: string) => {
+      const image = artImages.current[blockSpriteSheet];
+      if (image?.complete && image.naturalWidth > 0) {
+        const sourceW = image.naturalWidth / 2;
+        const sx = hit ? sourceW : 0;
+        context.save();
+        context.imageSmoothingEnabled = false;
+        context.fillStyle = "rgba(0,0,0,0.25)";
+        context.fillRect(Math.round(x + 4), Math.round(y + 30), 30, 5);
+        if (hasMate && !hit) {
+          context.globalAlpha = 0.28;
+          context.fillStyle = accent;
+          context.fillRect(Math.round(x - 3), Math.round(y - 3), 40, 40);
+          context.globalAlpha = 1;
+        }
+        context.drawImage(image, sx, 0, sourceW, image.naturalHeight, Math.round(x - 4), Math.round(y - 6), 42, 42);
+        context.restore();
+        return;
+      }
       context.fillStyle = hit ? "#7a6b58" : hasMate ? "#b56d28" : "#9f7445";
       context.fillRect(x, y, 34, 34);
       context.fillStyle = hit ? "#a89678" : hasMate ? "#f6c45f" : "#c79b5f";
@@ -1205,6 +1243,21 @@ export default function Home() {
     };
 
     const drawMate = (context: CanvasRenderingContext2D, x: number, y: number) => {
+      const image = artImages.current[matePowerupSprite];
+      if (image?.complete && image.naturalWidth > 0) {
+        context.save();
+        context.imageSmoothingEnabled = false;
+        const bob = Math.sin(tick.current / 10) * 2;
+        context.fillStyle = "rgba(0,0,0,0.24)";
+        context.fillRect(Math.round(x + 1), Math.round(y + 25), 28, 5);
+        context.globalAlpha = 0.32;
+        context.fillStyle = "#73f0bd";
+        context.fillRect(Math.round(x - 5), Math.round(y - 4 + bob), 38, 38);
+        context.globalAlpha = 1;
+        context.drawImage(image, Math.round(x - 7), Math.round(y - 16 + bob), 44, 44);
+        context.restore();
+        return;
+      }
       context.fillStyle = "#5a3325";
       context.fillRect(x + 4, y + 8, 18, 16);
       context.fillStyle = "#8a5638";
@@ -1281,6 +1334,20 @@ export default function Home() {
     };
 
     const drawObeliscoGoal = (context: CanvasRenderingContext2D, x: number, y: number, accent: string) => {
+      const image = artImages.current[obeliscoGoalSprite];
+      if (image?.complete && image.naturalWidth > 0) {
+        context.save();
+        context.imageSmoothingEnabled = false;
+        context.fillStyle = "rgba(0,0,0,0.24)";
+        context.fillRect(Math.round(x - 16), Math.round(y + 132), 124, 8);
+        context.globalAlpha = 0.24;
+        context.fillStyle = accent;
+        context.fillRect(Math.round(x + 14), Math.round(y + 8), 76, 130);
+        context.globalAlpha = 1;
+        context.drawImage(image, Math.round(x - 24), Math.round(y - 40), 138, 178);
+        context.restore();
+        return;
+      }
       context.fillStyle = "rgba(0,0,0,0.22)";
       context.fillRect(x - 18, y + 132, 100, 8);
       context.fillStyle = "#e9e2d0";
@@ -1300,6 +1367,34 @@ export default function Home() {
       context.fillRect(x + 58, y + 50, 48, 10);
       context.fillStyle = "#ffd43b";
       context.fillRect(x + 78, y + 42, 8, 6);
+    };
+
+    const drawVictoryPanel = (context: CanvasRenderingContext2D, track: PlayableTrack, tutorial: boolean, levelIndex: number) => {
+      const panelX = 214;
+      const panelY = 154;
+      const panelW = 532;
+      const panelH = 188;
+      const title = tutorial ? "PATIO APRENDIDO" : levelIndex === tracks.length - 1 ? "ALBUM COMPLETO" : "CANCION CERRADA";
+      const main = tutorial ? "Ya estas listo para entrar al album." : levelIndex === tracks.length - 1 ? "Super Milo J llego al Obelisco." : `${track.title} queda guardada.`;
+      const sub = tutorial ? "Ahora si: que arranque la vida corta." : levelIndex === tracks.length - 1 ? "Quince temas, un viaje y la bandera arriba." : "La proxima pista se abre con la bandera arriba.";
+      context.save();
+      context.fillStyle = "rgba(6,8,16,0.82)";
+      context.fillRect(panelX, panelY, panelW, panelH);
+      context.fillStyle = "rgba(255,255,255,0.08)";
+      context.fillRect(panelX + 8, panelY + 8, panelW - 16, panelH - 16);
+      context.fillStyle = track.accent;
+      context.fillRect(panelX, panelY, panelW, 5);
+      context.fillRect(panelX, panelY + panelH - 5, panelW, 5);
+      context.fillRect(panelX, panelY, 5, panelH);
+      context.fillRect(panelX + panelW - 5, panelY, 5, panelH);
+      context.fillStyle = "rgba(115,240,189,0.2)";
+      context.fillRect(panelX + 28, panelY + 36, 74, 74);
+      drawObeliscoGoal(context, panelX + 20, panelY - 18, track.accent);
+      drawPixelText(context, title, panelX + 138, panelY + 34, 26, track.accent);
+      drawPixelText(context, main, panelX + 138, panelY + 82, 16, "#fff");
+      drawPixelText(context, sub, panelX + 138, panelY + 114, 14, "rgba(255,255,255,0.86)");
+      drawPixelText(context, "ENTER / SIGUIENTE", panelX + 138, panelY + 150, 13, "#73f0bd");
+      context.restore();
     };
 
     const drawMilo = (context: CanvasRenderingContext2D, x: number, y: number, blink: number, powered: number, transformed: boolean, facing: number, accent: string, mateGlow = 0, victory = false) => {
@@ -1454,7 +1549,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v24</span>
+            <span className="kicker">Super Milo J v25</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">

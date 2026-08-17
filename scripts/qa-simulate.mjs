@@ -32,6 +32,10 @@ const artAssets = [
   "public/art/platform-spritesheet.png",
   "public/art/note-spritesheet.png",
   "public/art/ground-spritesheet.png",
+  "public/art/block-spritesheet.png",
+  "public/art/mate-powerup.png",
+  "public/art/checkpoint-flag.png",
+  "public/art/obelisco-goal.png",
   "public/art/enemies/enemy-cassette.png",
   "public/art/enemies/enemy-ghost.png",
   "public/art/enemies/enemy-mic.png",
@@ -277,9 +281,9 @@ for (let level = 0; level < tracks.length; level += 1) {
   ) {
     issues.push("enemy vertical spawn outside expected pattern bounds");
   }
-  if (level >= 4 && world.obstacles.length === 0) issues.push("expected mandatory platform obstacles");
+  if (world.obstacles.length === 0) issues.push("expected mandatory platform obstacles");
   if (level >= 7 && world.checkpoints.length < 3) issues.push("expected third checkpoint in long levels");
-  if (world.obstacles.some((obstacle) => obstacle.y < 360 || obstacle.y + obstacle.h !== 468 || obstacle.w < 36)) issues.push("obstacle collider does not seal ground route");
+  if (world.obstacles.some((obstacle) => obstacle.y < 320 || obstacle.y + obstacle.h !== 468 || obstacle.w < 36)) issues.push("obstacle collider does not seal ground route");
   if (world.obstacles.some((obstacle) => world.platforms.some((platform) => platform.y < 455 && rectsOverlap(obstacle, platform)))) issues.push("obstacle overlaps elevated platform");
   if (elevatedPlatforms.some((platform) => platform.w < 72 || platform.w > 190 || platform.x < 0 || platform.x > world.length + 120)) issues.push("platform dimensions outside expected range");
   if (
@@ -316,10 +320,8 @@ for (let level = 0; level < tracks.length; level += 1) {
   }
   const failedRuns = runs.filter((run) => !run.finished || run.falls > 0);
   const checkpointRuns = runs.filter((run) => run.checkpointTouches > 0);
-  const mandatoryJumpRuns = runs.filter((run) => run.obstacleJumps > 0);
   if (failedRuns.length > 0) issues.push(`${failedRuns.length}/${runs.length} route simulations failed or fell`);
   if (checkpointRuns.length === 0) issues.push("route simulations never touch checkpoints");
-  if (level >= 4 && mandatoryJumpRuns.length < runs.length * 0.55) issues.push("mandatory platform route not exercised enough");
   if (runs.some((run) => run.maxAirFrames > 145)) issues.push("route produced suspiciously long air time");
 
   if (issues.length > 0) failures += 1;

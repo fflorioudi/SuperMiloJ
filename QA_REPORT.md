@@ -27,6 +27,8 @@ Fecha: 2026-08-17
 - Se valida que el tutorial no tenga audio de album, sea corto, tenga un mate, un checkpoint, un enemigo y ruta completada.
 - Se valida la tanda v24 con spritesheets separados por enemigo, notas nuevas y textura de piso continua.
 - Se valida que las patrullas horizontales sigan dentro del mundo y que los patrones verticales de vuelo/salto usen rangos esperados.
+- Se valida la tanda v25 con PNGs nuevos para bloques, mate, checkpoints y Obelisco.
+- Se valida que cada nivel del album tenga obstaculos obligatorios para cortar la ruta de caminar derecho.
 
 ## Resultado
 
@@ -61,6 +63,8 @@ Fecha: 2026-08-17
 - La v23 vuelve a dejar el piso como bloque solido continuo, reserva PNGs para plataformas elevadas y agrega enemigos animados con patrones por tipo.
 - La v24 separa cada enemigo en su propio spritesheet, ajusta hitboxes por tipo y agrega sprites nuevos para notas y piso.
 - Los muros ya no toman su variante visual desde la posicion de camara, por lo que quedan estaticos mientras se juega.
+- La v25 sube la dificultad con puertas de muro desde el primer nivel del album y plataformas auxiliares testeadas.
+- El cierre de nivel usa un panel de victoria contextual y assets PNG para Obelisco, checkpoint, bloque y mate.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba

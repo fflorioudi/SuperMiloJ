@@ -110,7 +110,7 @@ export function makeWorld(level) {
   const obstacles = [];
   const obstacleAnchors = [];
   const checkpoints = [];
-  const platformCount = 10 + Math.floor(level * 0.82);
+  const platformCount = 11 + Math.floor(level * 0.92);
   const mateBlockIndexes = new Set(level < 6 ? [3] : level < 11 ? [4] : [3, 9]);
   const groundChunk = length + 360;
 
@@ -119,11 +119,11 @@ export function makeWorld(level) {
   }
 
   for (let i = 0; i < platformCount; i += 1) {
-    const gap = 250 + Math.floor(difficulty * 34);
+    const gap = 232 + Math.floor(difficulty * 42);
     const x = 410 + i * gap + ((i * 37 + level * 29) % 72);
     const lift = level < 3 ? 0 : Math.floor((i % 3) * difficulty * 18);
     const y = 410 - ((i + level) % 3) * (28 + Math.floor(difficulty * 8)) - lift;
-    const w = Math.max(92, 170 - Math.floor(difficulty * 36) - ((i + level) % 3) * 8);
+    const w = Math.max(84, 164 - Math.floor(difficulty * 42) - ((i + level) % 3) * 8);
     platforms.push({ x, y, w, h: 20 });
     notes.push({ x: x + 24, y: y - 34, collected: false });
     if (i % 2 === 0) notes.push({ x: x + Math.min(w - 24, 78), y: y - 62, collected: false });
@@ -135,7 +135,10 @@ export function makeWorld(level) {
     }
     if ((i + level) % 3 !== 1) blocks.push({ x: x + Math.min(34, w - 44), y: y - 96, hit: false, bump: 0, hasMate: mateBlockIndexes.has(i) });
 
-    if (level >= 4 && i > 0 && i % 3 === 1) {
+    const gateEvery = level < 3 ? 5 : level < 8 ? 4 : 3;
+    const isGate = level >= 1 && i > 0 && i % gateEvery === 1;
+    const isLateGate = level >= 8 && i > 4 && i % 5 === 3;
+    if (isGate || isLateGate) {
       obstacleAnchors.push({ x, w });
     }
   }
@@ -146,10 +149,11 @@ export function makeWorld(level) {
   }
 
   for (const anchor of obstacleAnchors) {
-    const wallY = 402;
-    const wallCandidates = [anchor.x - 104, anchor.x - 144, anchor.x - 184, anchor.x + anchor.w + 28, anchor.x + anchor.w + 68, anchor.x - 224];
+    const wallY = Math.max(360, 392 - level * 2);
+    const wallW = 42 + Math.min(12, Math.floor(level * 1.1));
+    const wallCandidates = [anchor.x - 112, anchor.x - 152, anchor.x - 196, anchor.x + anchor.w + 30, anchor.x + anchor.w + 78, anchor.x - 242];
     const wall = wallCandidates
-      .map((candidateX) => ({ x: candidateX, y: wallY, w: 40, h: 468 - wallY, kind: "wall" }))
+      .map((candidateX) => ({ x: candidateX, y: wallY, w: wallW, h: 468 - wallY, kind: "wall" }))
       .find(
         (candidate) =>
           !platforms.some(
@@ -159,6 +163,38 @@ export function makeWorld(level) {
           ),
       );
     if (wall) obstacles.push(wall);
+  }
+
+  const desiredGateCount = level < 4 ? 1 : 2;
+  if (obstacles.length > desiredGateCount) obstacles.splice(desiredGateCount);
+  for (let i = obstacles.length; i < desiredGateCount; i += 1) {
+    const wallY = Math.max(360, 392 - level * 2);
+    const wallW = 42 + Math.min(12, Math.floor(level * 1.1));
+    const x = Math.floor((length / (desiredGateCount + 1)) * (i + 1)) - 24 + ((level * 31 + i * 53) % 54);
+    obstacles.push({ x, y: wallY, w: wallW, h: 468 - wallY, kind: "wall" });
+  }
+
+  for (const obstacle of obstacles) {
+    let attempts = 0;
+    while (attempts < 18 && platforms.some((platform) => platform.y < 455 && rectsOverlap(obstacle, platform))) {
+      obstacle.x += 34 + attempts * 4;
+      obstacle.x = Math.max(320, Math.min(length - 420, obstacle.x));
+      attempts += 1;
+    }
+  }
+
+  for (const obstacle of obstacles) {
+    if (obstacle.h < 92) continue;
+    const helperY = 410;
+    const before = { x: obstacle.x - 194, y: helperY, w: 158, h: 20 };
+    const after = { x: obstacle.x + obstacle.w + 30, y: helperY, w: 158, h: 20 };
+    for (const helper of [before, after]) {
+      const overlaps = platforms.some((platform) => platform.y < 455 && rectsOverlap(helper, platform));
+      if (!overlaps && helper.x > 240 && helper.x + helper.w < length - 220) {
+        platforms.push(helper);
+        notes.push({ x: helper.x + 36, y: helper.y - 34, collected: false });
+      }
+    }
   }
 
   for (const enemy of enemies) {

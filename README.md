@@ -254,3 +254,13 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Se agrego `public/art/note-spritesheet.png` para notas musicales mas pulidas y con variantes de color.
 - Se agrego `public/art/ground-spritesheet.png` para mejorar el piso sin romper la regla de suelo solido continuo.
 - El QA valida que existan todos los sprites separados, el nuevo piso, las nuevas notas y que 800 corridas sigan completando tutorial + album.
+
+### v25
+
+- Se subio la dificultad real de los niveles: todos los niveles del album tienen al menos una puerta de muro que corta la caminata simple.
+- La curva ahora usa 1 puerta en niveles tempranos y 2 puertas en niveles medios/finales, con plataformas auxiliares para que sea desafiante pero terminable.
+- Se corrigio la generacion de muros para que no se encimen con plataformas elevadas ni dejen rutas rotas.
+- Se agregaron PNGs nuevos para bloque, mate, checkpoint y Obelisco final: `block-spritesheet.png`, `mate-powerup.png`, `checkpoint-flag.png` y `obelisco-goal.png`.
+- El bloque de nota/mate, el mate raro, los checkpoints y la meta ahora se renderizan desde PNGs con fallback al dibujo anterior.
+- Se reemplazo el cartel frio de victoria por un panel final mas acorde: cierre de cancion, mensaje de album y llamada a seguir.
+- El QA sigue validando 800 corridas y ahora controla que cada nivel del album tenga obstaculos obligatorios sin romper la ruta.
