@@ -4,9 +4,9 @@ Fecha: 2026-08-16
 
 ## Alcance
 
-- Se simularon 15 niveles.
+- Se simularon 16 escenarios: tutorial + 15 niveles del album.
 - Cada nivel fue recorrido 50 veces.
-- Total: 750 corridas automatizadas.
+- Total: 800 corridas automatizadas.
 - Cada nivel se probo con 5 estilos de ruta: normal, conservador, rapido, salto tarde y salto temprano.
 - Se validaron ruta base, suelo continuo, llegada al Obelisco, audios locales, bloques, notas y enemigos.
 - El QA usa el nucleo compartido `src/game/core.js`, el mismo que importa la app.
@@ -23,11 +23,13 @@ Fecha: 2026-08-16
 - Se valida que existan los assets de portada y las tres familias de fondos PNG.
 - Se valida rareza de mates, cantidad minima de notas, plataformas elevadas, enemigos, obstaculos y checkpoints.
 - Se simulan patrullas largas de enemigos contra muros para detectar penetraciones o rebotes rotos.
+- Se valida que el tutorial no tenga audio de album, sea corto, tenga un mate, un checkpoint, un enemigo y ruta completada.
 
 ## Resultado
 
-- Corridas exitosas: 750/750.
-- Niveles con fallos detectados: 0/15.
+- Corridas exitosas: 800/800.
+- Escenarios con fallos detectados: 0/16.
+- Niveles de album con fallos detectados: 0/15.
 - Audios detectados: 15/15.
 - Caidas durante la ruta base: 0.
 - Entidades fuera de rango: 0.
@@ -47,6 +49,7 @@ Fecha: 2026-08-16
 - Los checkpoints ahora pueden apoyarse en plataformas elevadas y respawnear a Milo en esa altura.
 - Se corrigio una formula de separacion que podia generar plataformas demasiado pegadas en niveles avanzados.
 - Si el patron de bloques dejaba un nivel sin mate, el generador ahora garantiza un mate raro sin hacerlo abundante.
+- El tutorial quedo separado del album y no altera desbloqueos ni puntajes.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba

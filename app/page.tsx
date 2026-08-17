@@ -10,6 +10,7 @@ import {
   gravity,
   height,
   isSeparatedByPlatform,
+  makeTutorialWorld,
   makeWorld,
   moveEnemy,
   readProgress,
@@ -19,14 +20,16 @@ import {
   resolveVerticalCollision,
   resizePlayerKeepingFeet,
   snapPlayerToFloor,
+  tutorialTrack,
   tracks,
   width,
   writeProgress,
 } from "../src/game/core";
 
 type Track = (typeof tracks)[number];
+type PlayableTrack = Track | typeof tutorialTrack;
 type Player = ReturnType<typeof freshPlayer>;
-type World = ReturnType<typeof makeWorld>;
+type World = ReturnType<typeof makeWorld> | ReturnType<typeof makeTutorialWorld>;
 type Enemy = World["enemies"][number];
 type SpriteRect = [number, number, number, number, string];
 type SpriteFrame = SpriteRect[];
@@ -35,6 +38,7 @@ const titleArt = "/art/super-milo-title.png";
 const backgroundArt = ["/art/bg-barrio.png", "/art/bg-ciudad-noche.png", "/art/bg-monte-rio.png"];
 
 function backgroundForLevel(levelIndex: number) {
+  if (levelIndex < 0) return backgroundArt[0];
   if (levelIndex < 5) return backgroundArt[0];
   if (levelIndex < 10) return backgroundArt[1];
   return backgroundArt[2];
@@ -155,12 +159,14 @@ export default function Home() {
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [progress, setProgress] = useState(defaultProgress());
   const [debugMode, setDebugMode] = useState(false);
+  const [playMode, setPlayMode] = useState<"tutorial" | "album">("album");
   const [showGlobalIntro, setShowGlobalIntro] = useState(true);
   const [showIntro, setShowIntro] = useState(true);
   const [routeProgress, setRouteProgress] = useState(0);
 
-  const currentTrack = tracks[level];
-  const levelLabel = useMemo(() => `${String(level + 1).padStart(2, "0")} / ${tracks.length}`, [level]);
+  const isTutorial = playMode === "tutorial";
+  const currentTrack: PlayableTrack = isTutorial ? tutorialTrack : tracks[level];
+  const levelLabel = useMemo(() => (isTutorial ? "Tutorial" : `${String(level + 1).padStart(2, "0")} / ${tracks.length}`), [isTutorial, level]);
 
   useEffect(() => {
     const saved = readProgress(localStorage);
@@ -179,8 +185,8 @@ export default function Home() {
     writeProgress(localStorage, nextProgress);
   };
 
-  const resetLevel = (levelIndex: number) => {
-    worldRef.current = makeWorld(levelIndex);
+  const resetLevel = (levelIndex: number, mode = playMode) => {
+    worldRef.current = mode === "tutorial" ? makeTutorialWorld() : makeWorld(levelIndex);
     player.current = freshPlayer();
     tick.current = 0;
     setScore(0);
@@ -189,18 +195,23 @@ export default function Home() {
     setGameOver(false);
     setRouteProgress(0);
     setShowIntro(true);
-    setStatus(`Nivel ${levelIndex + 1}: ${tracks[levelIndex].title}`);
+    setStatus(mode === "tutorial" ? "Tutorial: practica movimiento, bloques, mate, enemigo y checkpoint." : `Nivel ${levelIndex + 1}: ${tracks[levelIndex].title}`);
   };
 
   useEffect(() => {
-    resetLevel(level);
-  }, [level]);
+    resetLevel(level, playMode);
+  }, [level, playMode]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
     audio.volume = 0.55;
     audio.loop = true;
+    if (isTutorial) {
+      audio.pause();
+      audio.removeAttribute("src");
+      return;
+    }
     if (musicEnabled) {
       firstPlayableAudio(tracks[level].audio)
         .then((src) => {
@@ -213,7 +224,7 @@ export default function Home() {
         })
         .catch(() => setStatus("El navegador bloqueo el audio. Toca Musica otra vez."));
     }
-  }, [level, musicEnabled]);
+  }, [level, musicEnabled, isTutorial]);
 
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
@@ -288,6 +299,11 @@ export default function Home() {
     const finishLevel = () => {
       if (won) return;
       setWon(true);
+      if (isTutorial) {
+        setScore((value) => value + 50);
+        setStatus("Tutorial completo. Ya podes arrancar el album.");
+        return;
+      }
       const nextUnlock = Math.min(tracks.length, Math.max(unlocked, level + 2));
       setUnlocked(nextUnlock);
       const collectedNotes = worldRef.current.notes.filter((note) => note.collected).length;
@@ -307,7 +323,7 @@ export default function Home() {
 
     const step = () => {
       tick.current += 1;
-      const track = tracks[level];
+      const track = isTutorial ? tutorialTrack : tracks[level];
       const world = worldRef.current;
       const p = player.current;
       const left = keys.current.a || keys.current.arrowleft;
@@ -447,11 +463,11 @@ export default function Home() {
       loop.current = requestAnimationFrame(step);
     };
 
-    const draw = (context: CanvasRenderingContext2D, track: Track, world: World, p: Player) => {
+    const draw = (context: CanvasRenderingContext2D, track: PlayableTrack, world: World, p: Player) => {
       const cam = Math.max(0, Math.min(world.length - width + 120, p.x - 260));
       context.imageSmoothingEnabled = false;
       context.clearRect(0, 0, width, height);
-      drawBackdrop(context, level, track, cam);
+        drawBackdrop(context, isTutorial ? -1 : level, track, cam);
 
       for (const platform of world.platforms) drawPlatform(context, platform.x - cam, platform.y, platform.w, platform.h, track.ground, level);
       for (const block of world.blocks) {
@@ -475,7 +491,7 @@ export default function Home() {
         context.fillStyle = "rgba(10,12,20,0.76)";
         context.fillRect(230, 174, 500, 150);
         drawPixelText(context, "NIVEL COMPLETADO", 302, 206, 26, track.accent);
-        drawPixelText(context, level === tracks.length - 1 ? "Terminaste el album en el Obelisco" : "Se abre la proxima cancion", 318, 250, 15, "#fff");
+        drawPixelText(context, isTutorial ? "Listo para el album" : level === tracks.length - 1 ? "Terminaste el album en el Obelisco" : "Se abre la proxima cancion", 318, 250, 15, "#fff");
       }
       if (gameOver) {
         context.fillStyle = "rgba(10,12,20,0.82)";
@@ -508,7 +524,7 @@ export default function Home() {
       context.restore();
     };
 
-    const drawBackdrop = (context: CanvasRenderingContext2D, levelIndex: number, track: Track, cam: number) => {
+    const drawBackdrop = (context: CanvasRenderingContext2D, levelIndex: number, track: PlayableTrack, cam: number) => {
       context.fillStyle = track.sky;
       context.fillRect(0, 0, width, height);
       drawArtBackdrop(context, backgroundForLevel(levelIndex), cam);
@@ -526,8 +542,8 @@ export default function Home() {
       context.fillRect(0, 0, width, height);
     };
 
-    const drawLevelAtmosphere = (context: CanvasRenderingContext2D, levelIndex: number, cam: number, track: Track) => {
-      const motif = levelIndex % tracks.length;
+    const drawLevelAtmosphere = (context: CanvasRenderingContext2D, levelIndex: number, cam: number, track: PlayableTrack) => {
+      const motif = levelIndex < 0 ? 1 : levelIndex % tracks.length;
       if (motif === 3 || motif === 4) drawDust(context, cam, track.accent);
       if (motif === 5 || motif === 6 || motif === 8 || motif === 9) drawStageGlow(context, cam, track.accent);
       if (motif === 7) drawRain(context, cam, track.accent);
@@ -576,7 +592,7 @@ export default function Home() {
       }
     };
 
-    const drawAlbumParallax = (context: CanvasRenderingContext2D, motif: number, cam: number, track: Track) => {
+    const drawAlbumParallax = (context: CanvasRenderingContext2D, motif: number, cam: number, track: PlayableTrack) => {
       const far = cam * 0.07;
       const mid = cam * 0.2;
       context.fillStyle = "rgba(0,0,0,0.1)";
@@ -979,7 +995,7 @@ export default function Home() {
     return () => {
       if (loop.current) cancelAnimationFrame(loop.current);
     };
-  }, [level, lives, score, unlocked, won, gameOver, debugMode, showIntro]);
+  }, [level, lives, score, unlocked, won, gameOver, debugMode, showIntro, isTutorial, playMode]);
 
   const press = (key: string, value: boolean) => {
     keys.current[key] = value;
@@ -988,6 +1004,11 @@ export default function Home() {
   const toggleMusic = () => {
     const audio = audioRef.current;
     if (!audio) return;
+    if (isTutorial) {
+      audio.pause();
+      setStatus("El tutorial no usa musica: es practica antes del album.");
+      return;
+    }
     if (musicEnabled) {
       audio.pause();
       setMusicEnabled(false);
@@ -1032,8 +1053,11 @@ export default function Home() {
               <span>Obelisco final</span>
             </div>
             <div className="global-actions">
-              <button type="button" onClick={() => setShowGlobalIntro(false)}>
-                Empezar
+              <button type="button" onClick={() => { setPlayMode("album"); setShowGlobalIntro(false); }}>
+                Empezar album
+              </button>
+              <button type="button" onClick={() => { setPlayMode("tutorial"); setShowGlobalIntro(false); }}>
+                Tutorial
               </button>
               <button type="button" onClick={toggleMusic}>
                 {musicEnabled ? "Musica ON" : "Musica"}
@@ -1045,7 +1069,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v12</span>
+            <span className="kicker">Super Milo J v17</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">
@@ -1076,7 +1100,7 @@ export default function Home() {
             </div>
           </div>
           <div className="actions">
-            <button type="button" onClick={() => setLevel((value) => Math.max(0, value - 1))} disabled={level === 0}>
+            <button type="button" onClick={() => setLevel((value) => Math.max(0, value - 1))} disabled={isTutorial || level === 0}>
               Anterior
             </button>
             <button type="button" onClick={() => resetLevel(level)}>
@@ -1085,8 +1109,19 @@ export default function Home() {
             <button type="button" onClick={toggleMusic}>
               {musicEnabled ? "Pausar musica" : "Musica"}
             </button>
-            <button type="button" onClick={() => setLevel((value) => Math.min(unlocked - 1, value + 1))} disabled={level >= unlocked - 1}>
-              Siguiente
+            <button
+              type="button"
+              onClick={() => {
+                if (isTutorial) {
+                  setPlayMode("album");
+                  setLevel(0);
+                } else {
+                  setLevel((value) => Math.min(unlocked - 1, value + 1));
+                }
+              }}
+              disabled={!isTutorial && level >= unlocked - 1}
+            >
+              {isTutorial ? "Ir al album" : "Siguiente"}
             </button>
           </div>
         </div>
@@ -1108,13 +1143,22 @@ export default function Home() {
 
       <aside className="playlist" aria-label="Niveles del album">
         <h2>Niveles</h2>
+        <button
+          type="button"
+          className={isTutorial ? "active" : ""}
+          onClick={() => setPlayMode("tutorial")}
+        >
+          <span>00</span>
+          <strong>Tutorial</strong>
+          <small>Practica sin cancion ni progreso del album</small>
+        </button>
         {tracks.map((track, index) => (
           <button
             type="button"
             key={track.title}
-            className={index === level ? "active" : ""}
+            className={!isTutorial && index === level ? "active" : ""}
             disabled={index >= unlocked}
-            onClick={() => setLevel(index)}
+            onClick={() => { setPlayMode("album"); setLevel(index); }}
           >
             <span>{String(index + 1).padStart(2, "0")}</span>
             <strong>{track.title}</strong>

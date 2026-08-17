@@ -16,6 +16,7 @@ Despues abri `http://localhost:3000`.
 - Mover: `A/D` o flechas izquierda/derecha.
 - Saltar: `W`, flecha arriba o `Espacio`.
 - En pantallas tactiles aparecen botones para izquierda, derecha y salto.
+- La pantalla inicial incluye un **Tutorial** aparte del album, sin cancion ni progreso guardado.
 
 ## Musica local
 
@@ -182,3 +183,12 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Se garantiza que cada nivel tenga mate raro aunque el patron de bloques deje afuera el indice original.
 - Los checkpoints pueden apoyarse sobre plataformas elevadas y respawnear a Milo en esa misma altura.
 - Se reescribio `README_NEXT_VERSION.md` como roadmap para fondos 15/15, spritesheet nueva de Milo, animaciones y QA visual.
+
+### v17
+
+- Se agrego un **Tutorial** como nivel 00 separado del album.
+- El tutorial no usa cancion, no desbloquea niveles y no modifica el progreso del album.
+- El tutorial ensena movimiento, salto a plataformas, bloque con nota, mate raro, checkpoint, pared obligatoria y enemigo de practica.
+- La portada global ahora permite entrar directo al album o practicar primero en el tutorial.
+- La playlist muestra el tutorial separado antes de los 15 niveles del album.
+- El QA automatico ahora valida 16 escenarios: tutorial + 15 canciones, con 800 corridas totales.

@@ -1,60 +1,49 @@
-# Ideas para la proxima version
+# Roadmap de la proxima version
 
-## Objetivo general
+## Etapa 1: prioridad alta
 
-La proxima version deberia convertir **Super Milo J** en una version mas autoral: 15 niveles con identidad visual propia, protagonista mas reconocible, animaciones mas fluidas y una experiencia mas cercana a un juego terminado que a un prototipo.
+Estado: hecha.
 
-## Orden sugerido
+- Hecho: separar el tutorial del album.
+- Hecho: crear un nivel 00 de practica sin cancion, sin desbloqueos y sin progreso del album.
+- Hecho: mantener los 15 niveles del album como campaña principal.
+- Hecho: extender el QA a 16 escenarios: tutorial + 15 canciones.
+- Hecho: validar tutorial, assets, rutas, checkpoints, mates, enemigos, plataformas, obstaculos y audios.
+- Hecho: mantener build de Next.js limpio despues de los cambios.
 
-1. Fondos 15/15 por cancion.
-2. Protagonista nuevo con spritesheet real.
-3. Animaciones y efectos de juego.
-4. Ajuste fino de niveles y dificultad.
-5. Audio y presentacion final.
-6. QA visual y jugable.
+## Etapa 2: jugabilidad
 
-## Fondos por cancion
+Prioridad siguiente.
 
-- Generar 15 PNG distintos, uno por nivel, en pixel art horizontal 16:9.
-- Mantener lectura clara del gameplay: el fondo no debe competir con plataformas, enemigos, notas ni mates.
-- Separar cada fondo en capas: cielo/lejos, edificios o paisaje medio, objetos cercanos y atmosfera animada.
-- Usar parallax suave por capa para que no se sienta como imagen estatica.
-- Crear una paleta propia por tema, evitando que todos los niveles compartan los mismos colores.
-- Agregar objetos reconocibles por cancion: patio, barrio, ciudad, estudio, lluvia, recuerdos, cocina, reloj, cancha, monte, luciernagas, rio y Obelisco.
-- Preparar nombres de assets estables: `bg-01-bajo-de-la-piel.png`, `bg-02-nino.png`, etc.
-- Agregar fallback si falta un PNG, para que el nivel nunca quede sin fondo.
+- Ajustar el tutorial para que tenga carteles visuales simples dentro del escenario, no texto largo fuera del juego.
+- Agregar coyote time: permitir saltar unas pocas frames despues de salir de una plataforma.
+- Agregar jump buffer: si el jugador toca salto apenas antes de caer, que salte al aterrizar.
+- Agregar salto variable: salto corto si se suelta rapido, salto alto si se mantiene.
+- Revisar dificultad por bloques: niveles 1-5 accesibles, 6-10 con plataformas obligatorias, 11-15 exigentes.
+- Colocar checkpoints antes de zonas dificiles, no despues.
+- Hacer que los enemigos tengan roles mas claros: caminante, saltarin, flotante, carga, espera y emboscada.
+- Evitar zonas largas sin decision: cada tramo deberia tener nota, enemigo, bloque, salto o atmosfera fuerte.
+- Agregar pequenas recompensas opcionales para rutas elevadas: notas grandes, bloques secretos o atajos.
 
-## Protagonista
+## Etapa 3: arte y presentacion
 
-- Crear una spritesheet nueva de Milo chico: campera azul, remera blanca, corte de sus inicios, cara mas joven.
-- Crear una spritesheet nueva de Milo actual: campera marron, gesto mas serio, diente dorado y detalle metalico.
-- Pasar de sprites dibujados con rectangulos a sprites pixel art generados/retocados.
-- Mantener hitbox separada del dibujo para que el personaje pueda verse mejor sin romper colisiones.
+Va despues de cerrar jugabilidad.
+
+- Generar 15 fondos PNG distintos, uno por cancion.
+- Usar nombres estables: `bg-01-bajo-de-la-piel.png`, `bg-02-nino.png`, hasta `bg-15-jangadero.png`.
+- Mantener fallback a las tres familias actuales si falta algun fondo nuevo.
+- Crear capas por fondo: cielo/lejos, ciudad o paisaje medio, objetos cercanos y atmosfera.
+- Mejorar parallax para que el fondo se mueva con profundidad y no como una imagen plana.
+- Crear spritesheet nueva de Milo chico: campera azul, remera blanca, corte de sus inicios y cara mas joven.
+- Crear spritesheet nueva de Milo actual: campera marron, gesto serio, diente dorado y detalle metalico.
+- Separar hitbox y sprite para poder mejorar el dibujo sin romper colisiones.
 - Agregar frames para idle, caminar, correr, saltar, caer, recibir golpe, tomar mate y celebrar.
-- Hacer que el cambio por mate sea visualmente especial: brillo corto, pose nueva y transicion chico -> actual.
-- Mantener la regla actual: el look de Milo actual queda, pero el poder se pierde al recibir un golpe.
+- Mejorar animacion del mate con vapor, brillo y rebote.
+- Mejorar Obelisco/meta con bandera argentina ondeando.
 
-## Animaciones
+## Etapa 4: audio
 
-- Mejorar caminata con 4 a 6 frames por direccion.
-- Agregar squash/stretch sutil al aterrizar, sin deformar demasiado el pixel art.
-- Agregar particulas chicas al caer, romper bloque, juntar nota y tomar mate.
-- Animar notas musicales con oscilacion y brillo por color de nivel.
-- Animar mates como power-up raro: vapor, brillo y pequeño rebote.
-- Animar el Obelisco/meta con bandera argentina ondeando.
-- Agregar una mini celebracion al completar cada cancion.
-
-## Jugabilidad
-
-- Revisar la dificultad por bloques: niveles 1-5 accesibles, 6-10 con rutas obligatorias por plataformas, 11-15 mas largos y exigentes.
-- Ajustar checkpoints para que esten antes de secciones complicadas, no despues.
-- Mantener niveles largos para disfrutar la musica, pero evitar tramos vacios.
-- Agregar coyote time y salto variable para que el control se sienta mas justo.
-- Crear patrones de enemigos por nivel: patrulla simple, salto, zigzag, carga, espera y emboscada.
-- Evitar enemigos atrapados entre escalones o sobre plataformas demasiado chicas.
-- Agregar bloques sorpresa con notas, mates raros y algun bonus visual.
-
-## Audio
+Va al final para no mezclar bugs visuales con bugs de reproduccion.
 
 - Agregar control de volumen dentro del juego.
 - Guardar preferencia de musica activada/desactivada.
@@ -62,16 +51,15 @@ La proxima version deberia convertir **Super Milo J** en una version mas autoral
 - Mostrar estado de pista: cargando, reproduciendo, pausada o bloqueada por navegador.
 - Evaluar loops suaves si una cancion termina antes de completar el nivel.
 
-## QA proxima
+## Etapa 5: QA visual y jugable
 
-- Mantener las 750 simulaciones actuales como base minima.
+- Mantener `npm run qa` como requisito minimo antes de cada subida.
 - Agregar capturas automaticas por nivel para revisar fondos, plataformas y sprites.
-- Agregar pruebas de respawn en cada checkpoint, no solo ruta completa.
-- Agregar pruebas especificas de enemigo arriba/abajo de plataforma en varios niveles.
-- Agregar pruebas de power-up: tomar mate, recibir golpe, mantener look y perder poder.
-- Agregar una prueba de assets: verificar que existan los 15 fondos y la spritesheet del protagonista.
-- Agregar una prueba de contraste: fondos oscuros no deben esconder enemigos ni notas.
+- Agregar prueba de existencia para los 15 fondos cuando se generen.
+- Agregar prueba de spritesheet: archivo existe, dimensiones esperadas y frames configurados.
+- Agregar prueba de power-up: tomar mate, mantener look actual y perder solo el poder al recibir dano.
+- Agregar prueba de contraste: fondos oscuros no deben esconder enemigos ni notas.
 
-## Decision para la proxima tanda
+## Proxima accion recomendada
 
-La mejor proxima mejora grande seria empezar por los **15 fondos PNG por cancion** y, en paralelo, preparar el formato de spritesheet nuevo para Milo. Eso permite subir mucho la calidad visual sin tocar de golpe toda la fisica del juego.
+La siguiente tanda deberia ser **jugabilidad**: coyote time, jump buffer, salto variable y tutorial con instrucciones visuales integradas al escenario.

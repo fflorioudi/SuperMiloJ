@@ -6,6 +6,7 @@ import {
   gravity,
   height,
   isSeparatedByPlatform,
+  makeTutorialWorld,
   makeWorld,
   moveEnemy,
   rectsOverlap,
@@ -14,6 +15,7 @@ import {
   resolveVerticalCollision,
   resizePlayerKeepingFeet,
   snapPlayerToFloor,
+  tutorialTrack,
   tracks,
 } from "../src/game/core.js";
 
@@ -192,6 +194,39 @@ const routeStyles = [
   { name: "early-jump", acceleration: 0.4, maxSpeed: 4.1, jumpPower: -10.25, lookAhead: 150, obstacleLookAhead: 112, platformVerticalRange: 170 },
 ];
 
+{
+  const world = makeTutorialWorld();
+  const issues = [];
+  if (tutorialTrack.audio !== null) issues.push("tutorial should not have album audio");
+  if (world.length > 2200) issues.push("tutorial route too long");
+  if (world.blocks.filter((block) => block.hasMate).length !== 1) issues.push("tutorial should teach one mate block");
+  if (world.enemies.length !== 1) issues.push("tutorial should have one practice enemy");
+  if (world.checkpoints.length !== 1) issues.push("tutorial should have one checkpoint");
+  const runs = [];
+  for (const style of routeStyles) {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      runs.push({ style: style.name, ...runPlayerRoute(makeTutorialWorld(), style) });
+    }
+  }
+  const failedRuns = runs.filter((run) => !run.finished || run.falls > 0);
+  if (failedRuns.length > 0) issues.push(`${failedRuns.length}/${runs.length} tutorial simulations failed or fell`);
+  if (issues.length > 0) failures += 1;
+  report.push({
+    level: 0,
+    title: tutorialTrack.title,
+    runs: runs.length,
+    passedRuns: runs.length - failedRuns.length,
+    routeStyles: routeStyles.map((style) => style.name),
+    audio: "none",
+    checkpoints: world.checkpoints.length,
+    checkpointTouchRuns: runs.filter((run) => run.checkpointTouches > 0).length,
+    elevatedPlatforms: world.platforms.filter((platform) => platform.y < 455).length,
+    obstacles: world.obstacles.length,
+    enemies: world.enemies.length,
+    issues,
+  });
+}
+
 for (let level = 0; level < tracks.length; level += 1) {
   const world = makeWorld(level);
   const ground = world.platforms.find((platform) => platform.x === 0 && platform.y === 468);
@@ -270,4 +305,4 @@ for (let level = 0; level < tracks.length; level += 1) {
   });
 }
 
-console.log(JSON.stringify({ totalLevels: tracks.length, totalRuns: tracks.length * routeStyles.length * 10, routeStyles: routeStyles.map((style) => style.name), failingLevels: failures, coreTests, report }, null, 2));
+console.log(JSON.stringify({ totalLevels: tracks.length + 1, albumLevels: tracks.length, totalRuns: (tracks.length + 1) * routeStyles.length * 10, routeStyles: routeStyles.map((style) => style.name), failingLevels: failures, coreTests, report }, null, 2));

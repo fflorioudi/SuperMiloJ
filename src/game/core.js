@@ -23,6 +23,17 @@ export const tracks = [
   { title: "Jangadero", theme: "Rio final", sky: "#245a73", ground: "#7f674f", accent: "#ffd166", enemy: "#6e44ff", audio: "15-jangadero.mp3" },
 ];
 
+export const tutorialTrack = {
+  title: "Tutorial",
+  theme: "Patio de practica",
+  sky: "#2b3147",
+  ground: "#5d7f42",
+  accent: "#ffd166",
+  enemy: "#2ee6a6",
+  audio: null,
+  tutorial: true,
+};
+
 export function freshPlayer() {
   return { x: 60, y: 360, spawnX: 60, spawnY: 360, checkpointIndex: 0, vx: 0, vy: 0, w: 32, h: 62, grounded: false, invincible: 0, powered: 0, transformed: false, facing: 1 };
 }
@@ -143,6 +154,37 @@ export function makeWorld(level) {
     platforms.push(finalPlatform);
   }
   return { platforms, notes, blocks, mates, enemies, obstacles, checkpoints, length };
+}
+
+export function makeTutorialWorld() {
+  const length = 1900;
+  const platforms = [
+    { x: 0, y: 468, w: length + 260, h: 80 },
+    { x: 340, y: 410, w: 190, h: 20 },
+    { x: 650, y: 380, w: 160, h: 20 },
+    { x: 980, y: 408, w: 180, h: 20 },
+    { x: 1290, y: 370, w: 150, h: 20 },
+  ];
+  const notes = [
+    { x: 180, y: 420, collected: false },
+    { x: 385, y: 370, collected: false },
+    { x: 452, y: 348, collected: false },
+    { x: 695, y: 336, collected: false },
+    { x: 1020, y: 365, collected: false },
+    { x: 1330, y: 328, collected: false },
+  ];
+  const blocks = [
+    { x: 250, y: 356, hit: false, bump: 0, hasMate: false },
+    { x: 560, y: 286, hit: false, bump: 0, hasMate: true },
+    { x: 1180, y: 314, hit: false, bump: 0, hasMate: false },
+  ];
+  const mates = [];
+  const enemies = [
+    { ...makeEnemy(1040, 378, 0, 1), min: 990, max: 1120, baseY: 378, pattern: "walk", vx: 0.58 },
+  ];
+  const obstacles = [{ x: 830, y: 402, w: 40, h: 66, kind: "wall" }];
+  const checkpoints = [{ x: 892, y: 346, w: 76, h: 56, spawnY: 402, active: false }];
+  return { platforms, notes, blocks, mates, enemies, obstacles, checkpoints, length, tutorial: true };
 }
 
 export function rectsOverlap(a, b) {
