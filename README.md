@@ -313,3 +313,11 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - La pantalla final usa el PNG como fondo full-screen y texto HTML encima para mantener buena legibilidad.
 - Desde el cierre se puede rejugar el album o volver a la portada global.
 - El QA ahora valida que el asset final exista junto al resto del arte principal.
+
+### v31
+
+- Se corrigieron enemigos de puerta que podian quedar flotando: ahora las patrullas terrestres nacen sobre plataformas reales.
+- Se ajusto la colocacion de checkpoints elevados para que el punto de respawn quede dentro del soporte que los sostiene.
+- El QA de jugabilidad ahora falla si un enemigo terrestre no tiene piso bajo los pies en su posicion inicial, minima o maxima.
+- El QA tambien valida que los checkpoints con altura especial respawneen a Milo con los pies sobre una plataforma real.
+- `npm run qa` volvio a pasar con 800/800 corridas y 0 niveles fallando despues de endurecer las pruebas.

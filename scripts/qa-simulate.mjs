@@ -156,6 +156,22 @@ function assertCore(name, condition, details = "") {
   if (!condition) failures += 1;
 }
 
+function hasEnemyFooting(enemy, platforms, x = enemy.x) {
+  if (enemy.pattern === "fly" || enemy.pattern === "firefly") return true;
+  const feetY = enemy.baseY + enemy.h;
+  return platforms.some(
+    (platform) =>
+      Math.abs(platform.y - feetY) <= 3 &&
+      x + enemy.w > platform.x + 6 &&
+      x < platform.x + platform.w - 6,
+  );
+}
+
+function checkpointRespawnPosition(checkpoint, playerHeight = 62) {
+  const groundY = checkpoint.spawnY ?? 468;
+  return { x: checkpoint.x + 12, y: groundY - playerHeight, groundY };
+}
+
 for (const asset of artAssets) {
   assertCore(`art asset exists: ${asset}`, existsSync(asset), asset);
 }
@@ -210,6 +226,14 @@ for (const asset of artAssets) {
   player.y += player.vy;
   resolvePlatformLanding(player, platform, previousY, 12);
   assertCore("player can pass under platforms without crouch bug", player.y === previousY + player.vy && player.vy === -4);
+}
+
+{
+  const world = makeWorld(8);
+  const checkpoint = world.checkpoints.find((candidate) => candidate.spawnY < 468) ?? world.checkpoints[0];
+  const respawn = checkpointRespawnPosition(checkpoint);
+  const supported = world.platforms.some((platform) => Math.abs(platform.y - respawn.groundY) <= 3 && respawn.x + 32 > platform.x && respawn.x < platform.x + platform.w);
+  assertCore("checkpoint respawn preserves support height", supported && respawn.y + 62 === respawn.groundY);
 }
 
 {
@@ -337,6 +361,16 @@ for (let level = 0; level < tracks.length; level += 1) {
     )
   ) {
     issues.push("enemy patrol intersects wall obstacle");
+  }
+  if (
+    world.enemies.some(
+      (enemy) =>
+        !hasEnemyFooting(enemy, world.platforms, enemy.x) ||
+        !hasEnemyFooting(enemy, world.platforms, enemy.min) ||
+        !hasEnemyFooting(enemy, world.platforms, enemy.max),
+    )
+  ) {
+    issues.push("ground enemy patrol lacks platform support");
   }
   if (world.checkpoints.length < 2) issues.push("expected at least two checkpoints");
 

@@ -190,21 +190,28 @@ export function makeWorld(level) {
     const bridge = { x: obstacle.x - 20, y: highHelperY, w: 92, h: 20, challenge: true };
     const after = { x: obstacle.x + obstacle.w + 42, y: helperY, w: 148, h: 20, challenge: true };
     const gateHelpers = level < 4 ? [before, after] : [before, bridge, after];
+    const addedHelpers = [];
     for (const helper of gateHelpers) {
       const overlaps = platforms.some((platform) => platform.y < 455 && rectsOverlap(helper, platform));
       if (!overlaps && helper.x > 240 && helper.x + helper.w < length - 220) {
         platforms.push(helper);
+        addedHelpers.push(helper);
         notes.push({ x: helper.x + 36, y: helper.y - 34, collected: false });
       }
     }
     const gateSeed = Math.floor(obstacle.x / 37) + level * 11;
     const groundGuardType = level < 3 ? "cassette" : level < 7 ? "tv" : level < 11 ? "mic" : "barrel";
     const platformGuardType = level < 5 ? "cassette" : level < 9 ? "ghost" : level < 13 ? "firefly" : "mic";
-    const groundGuard = makeEnemy(obstacle.x - 92, obstacle.y - 30, level, gateSeed, groundGuardType);
-    groundGuard.min = Math.max(80, obstacle.x - 168);
-    groundGuard.max = Math.max(groundGuard.min + 24, obstacle.x - groundGuard.w - 12);
-    enemies.push(groundGuard);
-    const perch = gateHelpers[Math.min(gateHelpers.length - 1, 1)];
+    const guardPlatform = addedHelpers[0] ?? platforms
+      .filter((platform) => platform.y < 455 && platform.x < obstacle.x && platform.x + platform.w > obstacle.x - 220)
+      .sort((a, b) => b.x - a.x)[0];
+    if (guardPlatform) {
+      const groundGuard = makeEnemy(guardPlatform.x + 18, guardPlatform.y - 30, level, gateSeed, groundGuardType);
+      groundGuard.min = Math.max(guardPlatform.x + 8, groundGuard.x - 22);
+      groundGuard.max = Math.min(guardPlatform.x + guardPlatform.w - groundGuard.w - 8, groundGuard.x + 82 + level * 2);
+      enemies.push(groundGuard);
+    }
+    const perch = addedHelpers[Math.min(addedHelpers.length - 1, 1)] ?? gateHelpers[Math.min(gateHelpers.length - 1, 1)];
     const airGuard = makeEnemy(perch.x + 18, perch.y - 30, level, gateSeed + 5, platformGuardType);
     airGuard.min = Math.max(perch.x + 4, airGuard.x - 28);
     airGuard.max = Math.min(perch.x + perch.w - airGuard.w - 4, airGuard.x + 74 + level * 3);
@@ -266,7 +273,10 @@ export function makeWorld(level) {
       .filter((platform) => x >= platform.x - 40 && x <= platform.x + platform.w + 40)
       .sort((a, b) => Math.abs(x - (a.x + a.w / 2)) - Math.abs(x - (b.x + b.w / 2)))[0];
     const checkpointGroundY = support ? support.y : 468;
-    checkpoints.push({ x: x - 24, y: checkpointGroundY - 56, w: 76, h: 56, spawnY: checkpointGroundY, active: false });
+    const checkpointX = support
+      ? Math.max(support.x + 8, Math.min(x - 24, support.x + support.w - 52))
+      : x - 24;
+    checkpoints.push({ x: checkpointX, y: checkpointGroundY - 56, w: 76, h: 56, spawnY: checkpointGroundY, active: false });
     notes.push({ x: x + 48, y: 392, collected: false });
   }
 

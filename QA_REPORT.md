@@ -39,6 +39,7 @@ Fecha: 2026-08-17
 - Se valida que los enemigos voladores no atraviesen muros durante patrullas largas.
 - Se valida la tanda v29 con respawn de checkpoints ajustado, barra separada de cancion y tramos largos de piso menos vacios.
 - Se valida la tanda v30 con pantalla final full-screen y asset `album-finale-thanks.png`.
+- Se valida la tanda v31 con soporte real para enemigos terrestres y checkpoints elevados.
 
 ## Resultado
 
@@ -90,6 +91,8 @@ Fecha: 2026-08-17
 - El HUD muestra dos lecturas: avance de recorrido y avance de la cancion, para que se entienda mejor cuanto queda de gameplay y audio.
 - Los espacios de piso amplio se mantienen como respiracion de nivel, pero ahora reciben notas guia y patrullas puntuales cuando son demasiado largos.
 - La v30 agrega un cierre completo del album con PNG dedicado, texto legible encima y acciones para rejugar o volver al inicio.
+- La v31 corrige enemigos de puerta que podian aparecer flotando y asegura que los checkpoints elevados respawneen sobre soporte real.
+- El QA ahora comprueba soporte de enemigos terrestres en los extremos de patrulla y respawn de checkpoints con altura especial.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba

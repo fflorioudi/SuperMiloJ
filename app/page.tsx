@@ -1653,7 +1653,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v30</span>
+            <span className="kicker">Super Milo J v31</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">
