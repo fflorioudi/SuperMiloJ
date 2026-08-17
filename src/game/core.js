@@ -104,7 +104,7 @@ export function makeEnemy(x, y, level, seed, forcedType = null) {
 
 export function makeWorld(level) {
   const difficulty = level / (tracks.length - 1);
-  const length = 3350 + level * 245;
+  const length = 4800 + level * 430;
   const platforms = [];
   const notes = [];
   const blocks = [];
@@ -113,16 +113,11 @@ export function makeWorld(level) {
   const obstacles = [];
   const obstacleAnchors = [];
   const checkpoints = [];
-  const platformCount = 12 + Math.floor(level * 1.05);
+  const platformCount = 13 + Math.floor(level * 1.18);
   const mateBlockIndexes = new Set(level < 6 ? [3] : level < 11 ? [4] : [3, 9]);
-  const groundChunk = length + 360;
-
-  for (let x = 0; x < length + 360; x += groundChunk) {
-    platforms.push({ x, y: 468, w: Math.min(groundChunk, length + 360 - x), h: 80 });
-  }
 
   for (let i = 0; i < platformCount; i += 1) {
-    const gap = 232 + Math.floor(difficulty * 42);
+    const gap = 252 + Math.floor(difficulty * 56);
     const x = 410 + i * gap + ((i * 37 + level * 29) % 72);
     if (x > length - 360) continue;
     const lift = level < 3 ? 0 : Math.floor((i % 3) * difficulty * 18);
@@ -216,6 +211,41 @@ export function makeWorld(level) {
     enemies.push(airGuard);
   }
 
+  const pits = obstacles
+    .map((obstacle, index) => {
+      const pitW = 122 + Math.min(54, Math.floor(level * 4.2)) + (index % 2) * 18;
+      const pitX = Math.max(260, obstacle.x - pitW - 58);
+      return { x: pitX, y: 468, w: pitW, h: 80, kind: "pit" };
+    })
+    .sort((a, b) => a.x - b.x);
+
+  for (let i = 1; i < pits.length; i += 1) {
+    const previous = pits[i - 1];
+    if (pits[i].x <= previous.x + previous.w + 180) pits[i].x = previous.x + previous.w + 180;
+    if (pits[i].x + pits[i].w > length - 240) pits[i].x = length - 240 - pits[i].w;
+  }
+
+  let groundStart = 0;
+  for (const pit of pits) {
+    if (pit.x - groundStart > 90) platforms.push({ x: groundStart, y: 468, w: pit.x - groundStart, h: 80, ground: true });
+    groundStart = pit.x + pit.w;
+  }
+  if (length + 360 - groundStart > 90) platforms.push({ x: groundStart, y: 468, w: length + 360 - groundStart, h: 80, ground: true });
+
+  for (const pit of pits) {
+    const entry = { x: Math.max(180, pit.x - 152), y: 398 - Math.floor(difficulty * 22), w: 124, h: 20, challenge: true, route: "required" };
+    const exit = { x: pit.x + pit.w + 28, y: entry.y - (level > 6 ? 28 : 0), w: 132, h: 20, challenge: true, route: "required" };
+    const mid = level > 4 ? { x: pit.x + Math.floor(pit.w / 2) - 46, y: entry.y - 48, w: 92, h: 20, challenge: true, route: "required" } : null;
+    for (const platform of mid ? [entry, mid, exit] : [entry, exit]) {
+      const overlaps = platforms.some((other) => other.y < 455 && rectsOverlap(platform, other));
+      const hitsObstacle = obstacles.some((obstacle) => rectsOverlap(platform, obstacle));
+      if (!overlaps && !hitsObstacle && platform.x > 120 && platform.x + platform.w < length - 100) platforms.push(platform);
+    }
+    notes.push({ x: pit.x + Math.floor(pit.w / 2), y: entry.y - 64, collected: false, risky: true });
+  }
+
+  platforms.sort((a, b) => Number(b.h >= 60) - Number(a.h >= 60) || a.x - b.x || a.y - b.y);
+
   for (const enemy of enemies) {
     for (const obstacle of obstacles) {
       const patrolCrossesWall = enemy.baseY + enemy.h > obstacle.y && enemy.min < obstacle.x + obstacle.w && enemy.max + enemy.w > obstacle.x;
@@ -233,7 +263,7 @@ export function makeWorld(level) {
   for (let i = 1; i <= checkpointCount; i += 1) {
     const x = Math.floor((length / (checkpointCount + 1)) * i);
     const support = platforms
-      .filter((platform) => platform.y < 455 && x >= platform.x - 40 && x <= platform.x + platform.w + 40)
+      .filter((platform) => x >= platform.x - 40 && x <= platform.x + platform.w + 40)
       .sort((a, b) => Math.abs(x - (a.x + a.w / 2)) - Math.abs(x - (b.x + b.w / 2)))[0];
     const checkpointGroundY = support ? support.y : 468;
     checkpoints.push({ x: x - 24, y: checkpointGroundY - 56, w: 76, h: 56, spawnY: checkpointGroundY, active: false });
@@ -262,7 +292,7 @@ export function makeWorld(level) {
   if (!platforms.some((platform) => platform.y < 455 && rectsOverlap(finalPlatformClearance, platform)) && !obstacles.some((obstacle) => rectsOverlap(finalPlatformClearance, obstacle))) {
     platforms.push(finalPlatform);
   }
-  return { platforms, notes, blocks, mates, enemies, obstacles, checkpoints, length };
+  return { platforms, notes, blocks, mates, enemies, obstacles, checkpoints, pits, length };
 }
 
 export function makeTutorialWorld() {
@@ -474,8 +504,14 @@ export function moveEnemy(enemy, obstacles = []) {
   if (enemy.pattern === "roll") enemy.y = enemy.baseY + Math.sin(enemy.phase / 8) * 2;
   if (enemy.pattern === "walk" || enemy.pattern === "charge") enemy.y = enemy.baseY;
   if (enemy.x < enemy.min || enemy.x > enemy.max) enemy.vx *= -1;
-  if (enemy.pattern === "fly" || enemy.pattern === "firefly") return;
   for (const obstacle of obstacles) {
+    if ((enemy.pattern === "fly" || enemy.pattern === "firefly") && rectsOverlap(enemy, obstacle)) {
+      enemy.x = previousX;
+      enemy.vx *= -1;
+      if (rectsOverlap(enemy, obstacle)) enemy.y = obstacle.y - enemy.h - 4;
+      break;
+    }
+    if (enemy.pattern === "fly" || enemy.pattern === "firefly") continue;
     const speed = Math.abs(enemy.vx);
     const hitSide = resolveHorizontalCollision(enemy, obstacle, previousX);
     if (!hitSide) continue;

@@ -33,6 +33,10 @@ Fecha: 2026-08-17
 - Se agregan pruebas puntuales para que el mate rebote contra paredes y aterrice sobre bloques solidos.
 - Se valida la tanda v27 con dificultad reforzada: mas puertas obligatorias, guardianes de ruta y patrones de enemigos desincronizados.
 - Se valida que la subida de dificultad mantenga rutas completables, patrullas fuera de muros y plataformas dentro de rangos seguros.
+- Se valida la tanda v28 con piso segmentado, pits obligatorios y prueba `walk-only`.
+- Se valida que ningun nivel del album pueda completarse caminando derecho sin saltar.
+- Se valida que los niveles tardios tengan una duracion minima de ruta automatizada.
+- Se valida que los enemigos voladores no atraviesen muros durante patrullas largas.
 
 ## Resultado
 
@@ -76,6 +80,10 @@ Fecha: 2026-08-17
 - La pantalla de cierre se rehizo como panel de progreso, con texto mas motivador para seguir al proximo nivel o buscar una pasada mejor.
 - La dificultad ahora se apoya mas en composicion de rutas: puertas, plataformas obligatorias, guardianes y variacion de timing.
 - Los enemigos cargan, saltan, vuelan o ruedan con fases y pausas distintas para reducir patrones obvios.
+- La v28 corta el piso continuo del album y agrega pits obligatorios ligados a puertas de plataforma.
+- La ruta `walk-only` falla en los 15 niveles del album, por lo que ya no se puede pasar solo caminando.
+- El mate ya no dibuja aura sobre Milo y el resize de power-up separa al jugador si queda dentro de un solido.
+- Los niveles son mas largos y los finales incluyen 4 pits obligatorios para sostener mejor la tension y la musica.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba

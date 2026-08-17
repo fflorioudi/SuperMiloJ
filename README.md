@@ -283,3 +283,16 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Se agregaron guardianes de ruta en zonas obligatorias para que pasar por abajo deje de ser la respuesta facil.
 - Se ajusto la generacion final para evitar que enemigos o plataformas nazcan pegados a muros.
 - El QA volvio a pasar 800 corridas con 0 niveles fallando despues de subir la dificultad.
+
+### v28
+
+- Se completo el plan de `README_DIFICULTAD.md`: el album ya no se puede resolver caminando derecho.
+- El piso del album dejo de ser continuo y ahora se divide en segmentos con pits obligatorios.
+- Cada pit se acompana con plataformas de entrada/salida para que la dificultad sea real pero terminable.
+- La curva de pits escala por nivel: 1 en niveles iniciales, 2-3 en medios y 4 en finales.
+- Se alargaron los niveles base para que las canciones tengan mas recorrido y el ultimo nivel no dure segundos.
+- El QA agrego `walk-only`: ningun nivel del album puede completarse manteniendo derecha sin saltar.
+- Se elimino el aura visual de Milo al tomar mate para que no parezca ni actue como hitbox.
+- Al tomar mate cerca de paredes o bloques, Milo se separa del solido para evitar atascos.
+- Los enemigos voladores ahora tambien reaccionan ante muros y no los atraviesan en patrullas largas.
+- `npm run qa` paso con 800/800 corridas, 0 niveles fallando y todos los niveles del album bloqueando la ruta caminada.

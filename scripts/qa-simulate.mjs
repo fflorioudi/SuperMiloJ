@@ -65,6 +65,7 @@ function runPlayerRoute(world, style = {}) {
   const player = { ...freshPlayer() };
   let falls = 0;
   let finished = false;
+  let finishFrame = null;
   let checkpointTouches = 0;
   let maxAirFrames = 0;
   let currentAirFrames = 0;
@@ -75,11 +76,22 @@ function runPlayerRoute(world, style = {}) {
   const lookAhead = style.lookAhead ?? 125;
   const obstacleLookAhead = style.obstacleLookAhead ?? 86;
   const platformVerticalRange = style.platformVerticalRange ?? 150;
+  const noJump = Boolean(style.noJump);
+
+  const hasFloorAhead = (distance) =>
+    world.platforms.some(
+      (platform) =>
+        platform.h >= 60 &&
+        player.x + player.w + distance >= platform.x + 6 &&
+        player.x + player.w + distance <= platform.x + platform.w - 6 &&
+        player.y + player.h <= platform.y + 24,
+    );
 
   for (let frame = 0; frame < 6200; frame += 1) {
     const obstacleAhead = world.obstacles.some((obstacle) => obstacle.x > player.x && obstacle.x < player.x + obstacleLookAhead && player.y + player.h > obstacle.y + 8);
     const platformAhead = world.platforms.some((platform) => platform.y < 455 && platform.x > player.x + 12 && platform.x < player.x + lookAhead && platform.y > player.y - platformVerticalRange);
-    if (player.grounded && (obstacleAhead || platformAhead)) {
+    const gapAhead = !hasFloorAhead(46) || !hasFloorAhead(118);
+    if (!noJump && player.grounded && (obstacleAhead || platformAhead || gapAhead)) {
       if (obstacleAhead) obstacleJumps += 1;
       player.vy = jumpPower;
       player.grounded = false;
@@ -115,6 +127,7 @@ function runPlayerRoute(world, style = {}) {
 
     if (player.y > height + 80) {
       falls += 1;
+      if (style.stopOnFall) break;
       const safe = findSafePlatform(player, world);
       player.x = Math.max(30, safe.x + 12);
       player.y = safe.y - player.h;
@@ -125,11 +138,12 @@ function runPlayerRoute(world, style = {}) {
 
     if (player.x > world.length - 64) {
       finished = true;
+      finishFrame = frame;
       break;
     }
   }
 
-  return { finished, falls, finalX: Math.round(player.x), checkpointTouches, maxAirFrames, obstacleJumps };
+  return { finished, falls, finalX: Math.round(player.x), checkpointTouches, maxAirFrames, obstacleJumps, finishFrame };
 }
 
 const report = [];
@@ -277,14 +291,18 @@ const routeStyles = [
 
 for (let level = 0; level < tracks.length; level += 1) {
   const world = makeWorld(level);
-  const ground = world.platforms.find((platform) => platform.x === 0 && platform.y === 468);
+  const groundSegments = world.platforms.filter((platform) => platform.h >= 60 && platform.y === 468);
   const issues = [];
   const elevatedPlatforms = world.platforms.filter((platform) => platform.y < 455);
   const mateBlocks = world.blocks.filter((block) => block.hasMate);
+  const expectedGateCount = level < 2 ? 1 : level < 6 ? 2 : level < 11 ? 3 : 4;
 
-  if (!ground || ground.w < world.length) issues.push("ground does not cover full route");
+  if (groundSegments.length < 2) issues.push("ground should be split by mandatory gaps");
+  if ((world.pits?.length ?? 0) < expectedGateCount) issues.push("too few mandatory pits");
+  if (world.pits?.some((pit) => pit.w < 110 || pit.w > 210 || pit.x < 220 || pit.x > world.length - 260)) issues.push("pit dimensions outside expected range");
+  if (world.pits?.some((pit) => groundSegments.some((segment) => rectsOverlap(pit, segment)))) issues.push("pit overlaps solid ground segment");
   if (!audioExists(tracks[level].audio)) issues.push("audio missing");
-  if (world.length < 3350 + level * 245) issues.push("world length regressed");
+  if (world.length < 4800 + level * 430) issues.push("world length regressed");
   if (elevatedPlatforms.length < 10 + Math.floor(level * 0.82)) issues.push("too few elevated platforms");
   if (world.notes.length < 16 + Math.floor(level / 2)) issues.push("too few collectible notes");
   if (mateBlocks.length === 0 || mateBlocks.length > (level < 11 ? 1 : 2)) issues.push("mate rarity outside expected range");
@@ -337,11 +355,14 @@ for (let level = 0; level < tracks.length; level += 1) {
       runs.push({ style: style.name, ...runPlayerRoute(makeWorld(level), style) });
     }
   }
-  const failedRuns = runs.filter((run) => !run.finished || run.falls > 0);
+  const walkOnly = runPlayerRoute(makeWorld(level), { name: "walk-only", noJump: true, stopOnFall: true, acceleration: 0.42, maxSpeed: 4.35 });
+  const failedRuns = runs.filter((run) => !run.finished || run.falls > Math.max(1, world.pits?.length ?? 0));
   const checkpointRuns = runs.filter((run) => run.checkpointTouches > 0);
   if (failedRuns.length > 0) issues.push(`${failedRuns.length}/${runs.length} route simulations failed or fell`);
+  if (walkOnly.finished) issues.push("walk-only route reached the goal");
   if (checkpointRuns.length === 0) issues.push("route simulations never touch checkpoints");
   if (runs.some((run) => run.maxAirFrames > 145)) issues.push("route produced suspiciously long air time");
+  if (level >= 10 && Math.min(...runs.map((run) => run.finishFrame ?? 999999)) < 1500) issues.push("late level route is too short");
 
   if (issues.length > 0) failures += 1;
   report.push({
@@ -355,7 +376,10 @@ for (let level = 0; level < tracks.length; level += 1) {
     checkpointTouchRuns: checkpointRuns.length,
     elevatedPlatforms: elevatedPlatforms.length,
     obstacles: world.obstacles.length,
+    pits: world.pits?.length ?? 0,
     enemies: world.enemies.length,
+    walkOnlyFinished: walkOnly.finished,
+    fastestFinishFrame: Math.min(...runs.map((run) => run.finishFrame ?? 999999)),
     issues,
   });
 }

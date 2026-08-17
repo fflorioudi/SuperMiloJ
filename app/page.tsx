@@ -539,6 +539,13 @@ export default function Home() {
             mateFlash.current = 80;
             resizePlayerKeepingFeet(p, 38, 64);
             snapPlayerToFloor(p, worldRef.current);
+            for (const solid of [...worldRef.current.obstacles, ...worldRef.current.blocks.map((block) => ({ x: block.x, y: block.y + (block.bump ?? 0), w: 34, h: 34 }))]) {
+              if (!rectsOverlap(p, solid)) continue;
+              const playerCenter = p.x + p.w / 2;
+              const solidCenter = solid.x + solid.w / 2;
+              p.x = playerCenter < solidCenter ? solid.x - p.w - 1 : solid.x + solid.w + 1;
+              p.vx = 0;
+            }
             setScore((value) => value + 75);
             setLives((value) => Math.min(5, value + 1));
             setStatus("Mate power: Milo de ahora. Mas grande, mas fuerte, por poco tiempo.");
@@ -1441,19 +1448,11 @@ export default function Home() {
             ? 1 + (Math.floor(tick.current / 9) % 3)
             : 0;
       if (sheet?.complete && sheet.naturalWidth > 0) {
-        if ((transformed && powered > 0) || mateGlow > 0) {
-          context.fillStyle = "rgba(115,240,189,0.18)";
-          context.fillRect(x - 10, y - 16, 58, 84);
-        }
         drawMiloFromSheet(context, sheet, frameIndex, transformed ? 1 : 0, x, y, facing);
         return;
       }
       const spriteSet = transformed ? miloSprites.actual : miloSprites.chico;
       const frame = spriteSet[frameName];
-      if ((transformed && powered > 0) || mateGlow > 0) {
-        context.fillStyle = "rgba(115,240,189,0.18)";
-        context.fillRect(x - 6, y - 8, 48, 72);
-      }
       drawSpriteFrame(context, frame, x, transformed ? y - 8 : y, facing, accent);
     };
 
@@ -1577,7 +1576,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v27</span>
+            <span className="kicker">Super Milo J v28</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">

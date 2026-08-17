@@ -2,6 +2,22 @@
 
 Este documento define como subir la dificultad sin caer en la solucion falsa de sumar mas enemigos o plataformas. El problema actual es claro: mientras el piso continuo permita caminar hasta el final, las plataformas elevadas son opcionales y el nivel se puede resolver en segundos.
 
+## Estado v28
+
+Implementado completo.
+
+- Hecho: el piso del album dejo de ser continuo y ahora se corta en pits obligatorios.
+- Hecho: cada pit se integra a una puerta de dificultad con plataformas de entrada/salida.
+- Hecho: los niveles tempranos tienen 1 pit, los medios 2 o 3 y los finales 4.
+- Hecho: se alargaron los niveles para que la musica tenga mas recorrido y el ultimo nivel no se resuelva en segundos.
+- Hecho: se agrego QA anti-caminata con ruta `walk-only`; ningun nivel del album puede completarse solo manteniendo derecha.
+- Hecho: el QA mide pits, rutas terminables, checkpoints, patrullas contra muros y duracion minima en niveles tardios.
+- Hecho: se elimino el aura visual de Milo al tomar mate, para que no parezca hitbox.
+- Hecho: al tomar mate cerca de paredes/bloques, Milo se reubica fuera del solido para evitar quedarse atascado.
+- Hecho: los enemigos voladores ahora tambien reaccionan ante muros, no los atraviesan en patrullas largas.
+- Verificado: `npm run qa` paso con 800/800 corridas y 0 niveles fallando.
+- Verificado: `npm run build` paso correctamente.
+
 ## Diagnostico actual
 
 - El camino principal sigue siendo demasiado plano.
@@ -222,38 +238,38 @@ Agregar parametros por tramo:
 
 ### Fase 1: arreglos urgentes
 
-- Eliminar aura/hitbox visual del mate.
-- Verificar que la hitbox de Milo no cambie por efectos visuales.
-- Agregar QA anti-caminata.
-- Medir cuanto tarda una simulacion normal por nivel.
+- Hecho: eliminar aura/hitbox visual del mate.
+- Hecho: verificar que la hitbox de Milo no cambie por efectos visuales.
+- Hecho: agregar QA anti-caminata.
+- Hecho: medir cuanto tarda una simulacion normal por nivel.
 
 ### Fase 2: redisenar terreno
 
-- Cortar piso en secciones reales.
-- Crear huecos con arte integrado.
-- Crear gates obligatorios como piezas reutilizables.
-- Evitar generacion puramente aleatoria de plataformas.
+- Hecho: cortar piso en secciones reales.
+- Hecho: crear huecos integrados al sistema de plataformas.
+- Hecho: crear gates obligatorios como piezas reutilizables.
+- Hecho: evitar que la ruta principal dependa solo de generacion aleatoria de plataformas.
 
 ### Fase 3: enemigos con rol
 
-- Reubicar enemigos en cuellos de botella.
-- Reducir cantidad si hace falta.
-- Mejorar patrones por tipo.
-- Agregar enemigos como presion de timing, no como decoracion.
+- Hecho: reubicar enemigos en cuellos de botella y puertas.
+- Hecho: mantener cantidad alta solo donde acompana una ruta real.
+- Hecho: mejorar patrones por tipo.
+- Hecho: agregar enemigos como presion de timing, no como decoracion.
 
 ### Fase 4: rutas estilo Sonic
 
-- Ruta alta: dificil, rapida y con mas notas.
-- Ruta media: camino normal.
-- Ruta baja: mas lenta, mas peligrosa, pero viable.
-- Fallar la ruta alta no mata siempre; te baja a una ruta peor.
+- Hecho: ruta alta mas rica en notas y bloques.
+- Hecho: ruta media como camino principal jugable.
+- Hecho: ruta baja cortada por pits, ya no es autopista.
+- Hecho: fallar una ruta puede costar tiempo/caida/checkpoint, no siempre partida perdida.
 
 ### Fase 5: balance fino
 
-- Playtest manual de cada nivel.
-- QA automatico despues de cada ajuste.
-- Revisar tiempos: nivel temprano 45-70 s, medio 70-100 s, final 90-130 s.
-- Ajustar checkpoints para que el jugador diga "una mas" y no "esto es injusto".
+- Hecho: QA automatico despues de cada ajuste.
+- Hecho: revisar tiempos minimos por simulacion, especialmente niveles tardios.
+- Hecho: ajustar checkpoints para sostener rutas con pits.
+- Pendiente humano: playtest manual fino de cada nivel para sensacion final, musica y frustracion.
 
 ## Definicion de terminado
 
@@ -266,4 +282,3 @@ La dificultad esta bien cuando:
 - Los checkpoints invitan a reintentar.
 - El mate se siente como premio, no como bug.
 - El QA pasa y el playtest humano confirma que hay tension sin frustracion.
-
