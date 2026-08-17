@@ -187,6 +187,9 @@ export default function Home() {
   const artImages = useRef<Record<string, HTMLImageElement>>({});
   const worldRef = useRef<World>(makeWorld(0));
   const player = useRef<Player>(freshPlayer());
+  const hurtFlash = useRef(0);
+  const mateFlash = useRef(0);
+  const victoryPose = useRef(false);
   const [level, setLevel] = useState(0);
   const [unlocked, setUnlocked] = useState(1);
   const [status, setStatus] = useState("Milo chiquito corre. Busca un mate raro y llega al Obelisco.");
@@ -227,6 +230,9 @@ export default function Home() {
     worldRef.current = mode === "tutorial" ? makeTutorialWorld() : makeWorld(levelIndex);
     player.current = freshPlayer();
     tick.current = 0;
+    hurtFlash.current = 0;
+    mateFlash.current = 0;
+    victoryPose.current = false;
     setScore(0);
     setLives(3);
     setWon(false);
@@ -313,6 +319,7 @@ export default function Home() {
       if (fell) respawnOnSafePlatform();
       else {
         p.invincible = 85;
+        hurtFlash.current = 85;
         p.powered = 0;
         p.transformed = false;
         p.x = Math.max(30, p.x - 120);
@@ -336,7 +343,13 @@ export default function Home() {
 
     const finishLevel = () => {
       if (won) return;
+      const p = player.current;
       setWon(true);
+      victoryPose.current = true;
+      p.vx = 0;
+      p.vy = 0;
+      p.grounded = true;
+      p.facing = 1;
       if (isTutorial) {
         setScore((value) => value + 50);
         setStatus("Tutorial completo. Ya podes arrancar el album.");
@@ -426,6 +439,8 @@ export default function Home() {
 
         if (p.y > height + 80) hurtPlayer();
         if (p.invincible > 0) p.invincible -= 1;
+        if (hurtFlash.current > 0) hurtFlash.current -= 1;
+        if (mateFlash.current > 0) mateFlash.current -= 1;
         if (p.powered > 0) p.powered -= 1;
 
         for (const checkpoint of world.checkpoints) {
@@ -461,6 +476,7 @@ export default function Home() {
             p.powered = 700;
             p.transformed = true;
             p.invincible = Math.max(p.invincible, 100);
+            mateFlash.current = 80;
             resizePlayerKeepingFeet(p, 38, 64);
             snapPlayerToFloor(p, worldRef.current);
             setScore((value) => value + 75);
@@ -519,7 +535,7 @@ export default function Home() {
       for (const checkpoint of world.checkpoints) drawCheckpoint(context, checkpoint.x - cam, checkpoint.y, checkpoint.active, track.accent);
 
       drawObeliscoGoal(context, world.length - cam - 82, 330, track.accent);
-      drawMilo(context, p.x - cam, p.y, p.invincible, p.powered, p.transformed, p.facing, track.accent);
+      drawMilo(context, p.x - cam, p.y, hurtFlash.current, p.powered, p.transformed, p.facing, track.accent, mateFlash.current, won || victoryPose.current);
       if (debugMode) drawDebug(context, world, p, cam);
       drawPixelText(context, track.title, 24, 18, 20, "#fff");
       drawPixelText(context, track.theme, 24, 44, 13, "rgba(255,255,255,0.82)");
@@ -1117,30 +1133,33 @@ export default function Home() {
       context.fillRect(x + 78, y + 42, 8, 6);
     };
 
-    const drawMilo = (context: CanvasRenderingContext2D, x: number, y: number, blink: number, powered: number, transformed: boolean, facing: number, accent: string) => {
+    const drawMilo = (context: CanvasRenderingContext2D, x: number, y: number, blink: number, powered: number, transformed: boolean, facing: number, accent: string, mateGlow = 0, victory = false) => {
       if (blink > 0 && Math.floor(blink / 6) % 2 === 0) return;
-      const walking = Math.abs(player.current.vx) > 0.45 && player.current.grounded;
-      const frameName = blink > 0 ? "hit" : !player.current.grounded ? "jump" : walking ? (Math.floor(tick.current / 8) % 2 === 0 ? "run1" : "run2") : "idle";
+      const walking = !victory && Math.abs(player.current.vx) > 0.45 && player.current.grounded;
+      const celebrating = victory || mateGlow > 0;
+      const frameName = blink > 0 ? "hit" : celebrating ? "idle" : !player.current.grounded ? "jump" : walking ? (Math.floor(tick.current / 8) % 2 === 0 ? "run1" : "run2") : "idle";
       const sheet = artImages.current[miloSpriteSheet];
       const frameIndex = blink > 0
         ? 6
+        : celebrating
+          ? 7
         : !player.current.grounded
           ? player.current.vy < 0 ? 4 : 5
           : walking
             ? 1 + (Math.floor(tick.current / 9) % 3)
             : 0;
       if (sheet?.complete && sheet.naturalWidth > 0) {
-        if (transformed && powered > 0) {
-          context.fillStyle = "rgba(115,240,189,0.26)";
-          context.fillRect(x - 8, y - 12, 54, 78);
+        if ((transformed && powered > 0) || mateGlow > 0 || victory) {
+          context.fillStyle = victory ? "rgba(255,213,74,0.24)" : "rgba(115,240,189,0.26)";
+          context.fillRect(x - 10, y - 16, 58, 84);
         }
         drawMiloFromSheet(context, sheet, frameIndex, transformed ? 1 : 0, x, y, facing);
         return;
       }
       const spriteSet = transformed ? miloSprites.actual : miloSprites.chico;
       const frame = spriteSet[frameName];
-      if (transformed && powered > 0) {
-        context.fillStyle = "rgba(115,240,189,0.26)";
+      if ((transformed && powered > 0) || mateGlow > 0 || victory) {
+        context.fillStyle = victory ? "rgba(255,213,74,0.24)" : "rgba(115,240,189,0.26)";
         context.fillRect(x - 6, y - 8, 48, 72);
       }
       drawSpriteFrame(context, frame, x, transformed ? y - 8 : y, facing, accent);
@@ -1266,7 +1285,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v19</span>
+            <span className="kicker">Super Milo J v21</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">

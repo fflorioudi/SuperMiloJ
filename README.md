@@ -218,3 +218,10 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Se corrigio el anclaje del spritesheet de Milo: ahora cada frame se recorta por el cuerpo visible y los pies apoyan sobre la hitbox.
 - Se bajo un poco la aceleracion y la velocidad maxima para que la animacion de caminar/correr se pueda apreciar mejor.
 - Se ralentizo levemente el ciclo de frames al caminar para que el movimiento no se sienta tan acelerado visualmente.
+
+### v21
+
+- Se separo la animacion de dano de la invencibilidad del mate: tomar mate ya no muestra a Milo como herido.
+- Se agrego una pose visual de mate/celebracion usando el frame final del spritesheet.
+- Se corrigio el cierre del nivel para que Milo se quede quieto en pose de victoria al llegar al Obelisco.
+- Se actualizo la etiqueta interna a `Super Milo J v21`.
