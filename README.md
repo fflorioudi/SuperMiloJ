@@ -212,3 +212,9 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Se rehizo `milo-spritesheet.png` con Milo chico de campera azul y Milo actual de campera marron, usando dos filas de animacion.
 - Se limpio la transparencia real del spritesheet para que Milo no arrastre un rectangulo de fondo.
 - El renderer ahora recorta el spritesheet segun sus dimensiones reales en 8 columnas x 2 filas, asi los assets de mayor calidad no quedan deformados.
+
+### v20
+
+- Se corrigio el anclaje del spritesheet de Milo: ahora cada frame se recorta por el cuerpo visible y los pies apoyan sobre la hitbox.
+- Se bajo un poco la aceleracion y la velocidad maxima para que la animacion de caminar/correr se pueda apreciar mejor.
+- Se ralentizo levemente el ciclo de frames al caminar para que el movimiento no se sienta tan acelerado visualmente.

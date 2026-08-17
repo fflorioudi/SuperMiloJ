@@ -36,6 +36,28 @@ type SpriteFrame = SpriteRect[];
 
 const titleArt = "/art/super-milo-title.png";
 const miloSpriteSheet = "/art/milo-spritesheet.png";
+const miloSpriteTrims = [
+  [
+    { x: 96, y: 123, w: 107, h: 257 },
+    { x: 74, y: 123, w: 144, h: 257 },
+    { x: 66, y: 126, w: 150, h: 253 },
+    { x: 61, y: 134, w: 161, h: 242 },
+    { x: 0, y: 88, w: 222, h: 251 },
+    { x: 0, y: 178, w: 222, h: 196 },
+    { x: 0, y: 144, w: 188, h: 236 },
+    { x: 8, y: 117, w: 132, h: 263 },
+  ],
+  [
+    { x: 92, y: 54, w: 111, h: 269 },
+    { x: 73, y: 59, w: 143, h: 264 },
+    { x: 61, y: 60, w: 151, h: 262 },
+    { x: 55, y: 69, w: 167, h: 253 },
+    { x: 0, y: 29, w: 222, h: 253 },
+    { x: 0, y: 113, w: 222, h: 203 },
+    { x: 0, y: 86, w: 192, h: 237 },
+    { x: 12, y: 40, w: 128, h: 283 },
+  ],
+];
 const backgroundArt = [
   "/art/bg-00-tutorial.png",
   "/art/bg-01-bajo-de-la-piel.png",
@@ -348,11 +370,11 @@ export default function Home() {
 
       if (!showIntro && !won && !gameOver) {
         if (tick.current % 12 === 0) setRouteProgress(Math.min(100, Math.max(0, Math.round((p.x / Math.max(1, world.length)) * 100))));
-        if (left) p.vx -= 0.42;
-        if (right) p.vx += 0.42;
+        if (left) p.vx -= 0.34;
+        if (right) p.vx += 0.34;
         if (left) p.facing = -1;
         if (right) p.facing = 1;
-        p.vx = Math.max(-4.35, Math.min(4.35, p.vx));
+        p.vx = Math.max(-3.65, Math.min(3.65, p.vx));
         if (jump && p.grounded) {
           p.vy = -10.4;
           p.grounded = false;
@@ -1105,14 +1127,14 @@ export default function Home() {
         : !player.current.grounded
           ? player.current.vy < 0 ? 4 : 5
           : walking
-            ? 1 + (Math.floor(tick.current / 6) % 3)
+            ? 1 + (Math.floor(tick.current / 9) % 3)
             : 0;
       if (sheet?.complete && sheet.naturalWidth > 0) {
         if (transformed && powered > 0) {
           context.fillStyle = "rgba(115,240,189,0.26)";
           context.fillRect(x - 8, y - 12, 54, 78);
         }
-        drawMiloFromSheet(context, sheet, frameIndex, transformed ? 1 : 0, x, transformed ? y - 10 : y - 6, facing);
+        drawMiloFromSheet(context, sheet, frameIndex, transformed ? 1 : 0, x, y, facing);
         return;
       }
       const spriteSet = transformed ? miloSprites.actual : miloSprites.chico;
@@ -1129,21 +1151,22 @@ export default function Home() {
       const rows = 2;
       const sourceW = sheet.naturalWidth / columns;
       const sourceH = sheet.naturalHeight / rows;
-      const drawW = row === 1 ? 50 : 48;
-      const drawH = row === 1 ? 70 : 68;
+      const trim = miloSpriteTrims[row]?.[Math.max(0, Math.min(columns - 1, frameIndex))] ?? { x: 0, y: 0, w: sourceW, h: sourceH };
+      const drawH = row === 1 ? 68 : 64;
+      const drawW = Math.max(30, Math.min(54, drawH * (trim.w / trim.h)));
       const center = x + (row === 1 ? 18 : 17);
       const drawX = Math.round(center - drawW / 2);
-      const drawY = Math.round(y - 8);
-      const sourceX = Math.max(0, Math.min(columns - 1, frameIndex)) * sourceW;
-      const sourceY = Math.max(0, Math.min(rows - 1, row)) * sourceH;
+      const drawY = Math.round(y + player.current.h - drawH + 1);
+      const sourceX = Math.max(0, Math.min(columns - 1, frameIndex)) * sourceW + trim.x;
+      const sourceY = Math.max(0, Math.min(rows - 1, row)) * sourceH + trim.y;
       context.save();
       context.imageSmoothingEnabled = false;
       if (facing < 0) {
         context.translate(drawX + drawW, drawY);
         context.scale(-1, 1);
-        context.drawImage(sheet, sourceX, sourceY, sourceW, sourceH, 0, 0, drawW, drawH);
+        context.drawImage(sheet, sourceX, sourceY, trim.w, trim.h, 0, 0, drawW, drawH);
       } else {
-        context.drawImage(sheet, sourceX, sourceY, sourceW, sourceH, drawX, drawY, drawW, drawH);
+        context.drawImage(sheet, sourceX, sourceY, trim.w, trim.h, drawX, drawY, drawW, drawH);
       }
       context.restore();
     };
