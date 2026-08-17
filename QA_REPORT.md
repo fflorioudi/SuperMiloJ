@@ -29,6 +29,8 @@ Fecha: 2026-08-17
 - Se valida que las patrullas horizontales sigan dentro del mundo y que los patrones verticales de vuelo/salto usen rangos esperados.
 - Se valida la tanda v25 con PNGs nuevos para bloques, mate, checkpoints y Obelisco.
 - Se valida que cada nivel del album tenga obstaculos obligatorios para cortar la ruta de caminar derecho.
+- Se valida la tanda v26 sin auras rectangulares en objetos clave y con fisica de mate contra muros/bloques.
+- Se agregan pruebas puntuales para que el mate rebote contra paredes y aterrice sobre bloques solidos.
 
 ## Resultado
 
@@ -65,6 +67,9 @@ Fecha: 2026-08-17
 - Los muros ya no toman su variante visual desde la posicion de camara, por lo que quedan estaticos mientras se juega.
 - La v25 sube la dificultad con puertas de muro desde el primer nivel del album y plataformas auxiliares testeadas.
 - El cierre de nivel usa un panel de victoria contextual y assets PNG para Obelisco, checkpoint, bloque y mate.
+- La v26 elimina las auras/cuadrados de ayuda visual y deja que los assets PNG se integren mejor al fondo.
+- El mensaje final ahora distingue tutorial, cancion superada y album completo con textos mas calidos.
+- El mate raro ya no atraviesa muros ni bloques: usa colisiones solidas ademas de plataformas.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba

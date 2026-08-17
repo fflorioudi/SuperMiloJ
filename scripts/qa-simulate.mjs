@@ -12,6 +12,7 @@ import {
   rectsOverlap,
   resolveHorizontalCollision,
   resolvePlatformLanding,
+  resolveSolidCollision,
   resolveVerticalCollision,
   resizePlayerKeepingFeet,
   snapPlayerToFloor,
@@ -194,6 +195,24 @@ for (const asset of artAssets) {
   player.y += player.vy;
   resolvePlatformLanding(player, platform, previousY, 12);
   assertCore("player can pass under platforms without crouch bug", player.y === previousY + player.vy && player.vy === -4);
+}
+
+{
+  const obstacle = { x: 160, y: 360, w: 52, h: 108 };
+  const mate = { x: 132, y: 392, w: 22, h: 26, vx: 7, vy: 0, grounded: false };
+  const previousX = mate.x;
+  mate.x += mate.vx;
+  const hit = resolveHorizontalCollision(mate, obstacle, previousX);
+  assertCore("mate bounces off solid walls horizontally", hit === "left" && mate.x + mate.w <= obstacle.x && mate.vx <= 0);
+}
+
+{
+  const block = { x: 190, y: 360, w: 52, h: 52 };
+  const mate = { x: 202, y: 326, w: 22, h: 26, vx: 0, vy: 10, grounded: false };
+  const previousY = mate.y;
+  mate.y += mate.vy;
+  const hit = resolveSolidCollision(mate, block, mate.x, previousY);
+  assertCore("mate lands on solid blocks instead of phasing through", hit === "top" && mate.y + mate.h <= block.y && mate.vy <= 0);
 }
 
 {

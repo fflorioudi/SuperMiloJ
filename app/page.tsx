@@ -523,7 +523,7 @@ export default function Home() {
             }
           }
           for (const solid of solids) {
-            const hit = resolveSolidCollision(mateBody, solid, mate.x, previousMateY);
+            const hit = resolveSolidCollision(mateBody, solid, previousMateX, previousMateY);
             if (!hit) continue;
             mate.x = mateBody.x;
             mate.y = mateBody.y;
@@ -1389,9 +1389,18 @@ export default function Home() {
       const panelY = 154;
       const panelW = 532;
       const panelH = 188;
-      const title = tutorial ? "PATIO APRENDIDO" : levelIndex === tracks.length - 1 ? "ALBUM COMPLETO" : "CANCION CERRADA";
-      const main = tutorial ? "Ya estas listo para entrar al album." : levelIndex === tracks.length - 1 ? "Super Milo J llego al Obelisco." : `${track.title} queda guardada.`;
-      const sub = tutorial ? "Ahora si: que arranque la vida corta." : levelIndex === tracks.length - 1 ? "Quince temas, un viaje y la bandera arriba." : "La proxima pista se abre con la bandera arriba.";
+      const title = tutorial ? "LISTO PARA SALIR" : levelIndex === tracks.length - 1 ? "ALBUM COMPLETO" : "CANCION SUPERADA";
+      const main = tutorial
+        ? "Ya tenes salto, mate y checkpoint."
+        : levelIndex === tracks.length - 1
+          ? "Llegaste al Obelisco con el disco entero."
+          : `${track.title} queda en la ruta.`;
+      const sub = tutorial
+        ? "Ahora empieza el viaje por las 15 canciones."
+        : levelIndex === tracks.length - 1
+          ? "La bandera queda arriba. Viaje completo."
+          : "Respira un segundo. La proxima ya espera.";
+      const cta = tutorial ? "ENTRAR AL ALBUM" : levelIndex === tracks.length - 1 ? "VOLVER A JUGAR" : "SIGUIENTE CANCION";
       context.save();
       context.fillStyle = "rgba(6,8,16,0.82)";
       context.fillRect(panelX, panelY, panelW, panelH);
@@ -1402,13 +1411,11 @@ export default function Home() {
       context.fillRect(panelX, panelY + panelH - 5, panelW, 5);
       context.fillRect(panelX, panelY, 5, panelH);
       context.fillRect(panelX + panelW - 5, panelY, 5, panelH);
-      context.fillStyle = "rgba(115,240,189,0.2)";
-      context.fillRect(panelX + 28, panelY + 36, 74, 74);
       drawObeliscoGoal(context, panelX + 20, panelY - 18, track.accent);
       drawPixelText(context, title, panelX + 138, panelY + 34, 26, track.accent);
-      drawPixelText(context, main, panelX + 138, panelY + 82, 16, "#fff");
-      drawPixelText(context, sub, panelX + 138, panelY + 114, 14, "rgba(255,255,255,0.86)");
-      drawPixelText(context, "ENTER / SIGUIENTE", panelX + 138, panelY + 150, 13, "#73f0bd");
+      drawPixelText(context, main, panelX + 138, panelY + 78, 14, "#fff");
+      drawPixelText(context, sub, panelX + 138, panelY + 108, 13, "rgba(255,255,255,0.86)");
+      drawPixelText(context, cta, panelX + 138, panelY + 150, 13, "#73f0bd");
       context.restore();
     };
 
@@ -1564,7 +1571,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v25</span>
+            <span className="kicker">Super Milo J v26</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">

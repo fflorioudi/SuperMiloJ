@@ -264,3 +264,11 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - El bloque de nota/mate, el mate raro, los checkpoints y la meta ahora se renderizan desde PNGs con fallback al dibujo anterior.
 - Se reemplazo el cartel frio de victoria por un panel final mas acorde: cierre de cancion, mensaje de album y llamada a seguir.
 - El QA sigue validando 800 corridas y ahora controla que cada nivel del album tenga obstaculos obligatorios sin romper la ruta.
+
+### v26
+
+- Se quitaron las auras/cuadrados transparentes que aparecian alrededor del mate, bloques, checkpoints y Obelisco.
+- Los PNGs principales ahora respiran mas limpios sobre el escenario, con sombras discretas en vez de cajas de ayuda visual.
+- Se mejoro el mensaje final para que sea mas amigable y contextual: tutorial, cancion superada y album completo tienen textos distintos.
+- Se corrigio la fisica del mate raro: ahora choca con muros y bloques solidos, rebota o cae sobre ellos en vez de atravesarlos.
+- El QA agrego pruebas especificas para el mate contra paredes y bloques, manteniendo las 800 corridas generales.
