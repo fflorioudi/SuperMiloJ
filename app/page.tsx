@@ -222,6 +222,7 @@ export default function Home() {
   const [showGlobalIntro, setShowGlobalIntro] = useState(true);
   const [showIntro, setShowIntro] = useState(true);
   const [routeProgress, setRouteProgress] = useState(0);
+  const [musicProgress, setMusicProgress] = useState(0);
 
   const isTutorial = playMode === "tutorial";
   const currentTrack: PlayableTrack = isTutorial ? tutorialTrack : tracks[level];
@@ -270,6 +271,7 @@ export default function Home() {
     setWon(false);
     setGameOver(false);
     setRouteProgress(0);
+    setMusicProgress(0);
     setShowIntro(true);
     setStatus(mode === "tutorial" ? "Tutorial: practica movimiento, bloques, mate, enemigo y checkpoint." : `Nivel ${levelIndex + 1}: ${tracks[levelIndex].title}`);
   };
@@ -286,9 +288,11 @@ export default function Home() {
     if (isTutorial) {
       audio.pause();
       audio.removeAttribute("src");
+      setMusicProgress(0);
       return;
     }
     if (musicEnabled) {
+      setMusicProgress(0);
       firstPlayableAudio(tracks[level].audio)
         .then((src) => {
           if (!src) {
@@ -299,8 +303,30 @@ export default function Home() {
           return audio.play();
         })
         .catch(() => setStatus("El navegador bloqueo el audio. Toca Musica otra vez."));
+    } else {
+      setMusicProgress(0);
     }
   }, [level, musicEnabled, isTutorial]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const updateMusicProgress = () => {
+      if (!audio.duration || Number.isNaN(audio.duration)) {
+        setMusicProgress(0);
+        return;
+      }
+      setMusicProgress(Math.min(100, Math.max(0, Math.round((audio.currentTime / audio.duration) * 100))));
+    };
+    audio.addEventListener("timeupdate", updateMusicProgress);
+    audio.addEventListener("loadedmetadata", updateMusicProgress);
+    audio.addEventListener("seeked", updateMusicProgress);
+    return () => {
+      audio.removeEventListener("timeupdate", updateMusicProgress);
+      audio.removeEventListener("loadedmetadata", updateMusicProgress);
+      audio.removeEventListener("seeked", updateMusicProgress);
+    };
+  }, []);
 
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
@@ -327,22 +353,28 @@ export default function Home() {
     const respawnOnSafePlatform = () => {
       const p = player.current;
       const world = worldRef.current;
+      p.powered = 0;
+      p.transformed = false;
+      p.w = 32;
+      p.h = 62;
       if (p.checkpointIndex > 0) {
+        const groundY = p.spawnGroundY ?? p.spawnY + p.h;
         p.x = p.spawnX;
-        p.y = p.spawnY;
+        p.y = groundY - p.h;
+        p.spawnY = p.y;
+        p.spawnGroundY = groundY;
       } else {
         const safe = findSafePlatform(p, world);
         p.x = Math.max(30, Math.min(safe.x + 28, safe.x + safe.w - p.w - 18));
         p.y = safe.y - p.h;
+        p.spawnGroundY = safe.y;
       }
       p.spawnX = p.x;
       p.spawnY = p.y;
       p.vx = 0;
-      p.vy = -2;
-      p.grounded = false;
+      p.vy = 0;
+      p.grounded = true;
       p.invincible = 105;
-      p.powered = 0;
-      p.transformed = false;
     };
 
     const hurtPlayer = () => {
@@ -480,7 +512,8 @@ export default function Home() {
           checkpoint.active = true;
           p.checkpointIndex += 1;
           p.spawnX = checkpoint.x + 12;
-          p.spawnY = (checkpoint.spawnY ?? 468) - p.h;
+          p.spawnGroundY = checkpoint.spawnY ?? 468;
+          p.spawnY = p.spawnGroundY - p.h;
           setStatus(`Checkpoint ${p.checkpointIndex}: si caes, volves aca.`);
         }
 
@@ -1576,7 +1609,7 @@ export default function Home() {
       <section className="stage-panel" aria-label="Juego Milo J Pixel Run">
         <div className="topbar">
           <div>
-            <span className="kicker">Super Milo J v28</span>
+            <span className="kicker">Super Milo J v29</span>
             <h1>Super Milo J</h1>
           </div>
           <div className="level-readout">
@@ -1602,8 +1635,19 @@ export default function Home() {
         <div className="hud">
           <div className="hud-status">
             <p>{status}</p>
-            <div className="route-progress" aria-label="Progreso del nivel">
-              <span style={{ width: `${routeProgress}%` }} />
+            <div className="progress-stack">
+              <div className="meter-row">
+                <small>Nivel</small>
+                <div className="route-progress" aria-label="Progreso del nivel">
+                  <span style={{ width: `${routeProgress}%` }} />
+                </div>
+              </div>
+              <div className="meter-row">
+                <small>Cancion</small>
+                <div className="route-progress music-progress" aria-label="Progreso de la cancion">
+                  <span style={{ width: `${isTutorial || !musicEnabled ? 0 : musicProgress}%` }} />
+                </div>
+              </div>
             </div>
           </div>
           <div className="actions">

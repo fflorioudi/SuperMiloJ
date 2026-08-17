@@ -432,6 +432,23 @@ canvas {
   gap: 9px;
 }
 
+.progress-stack {
+  display: grid;
+  gap: 5px;
+}
+
+.meter-row {
+  display: grid;
+  grid-template-columns: 62px minmax(120px, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.meter-row small {
+  color: #b8bac8;
+  font-size: 11px;
+}
+
 .route-progress {
   height: 10px;
   border: 2px solid var(--line);
@@ -444,6 +461,10 @@ canvas {
   height: 100%;
   background: linear-gradient(90deg, var(--mint), var(--hot));
   transition: width 140ms linear;
+}
+
+.music-progress span {
+  background: linear-gradient(90deg, #74c0fc, #f7f3df, var(--hot));
 }
 
 .actions,

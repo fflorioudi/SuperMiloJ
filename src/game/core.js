@@ -35,7 +35,7 @@ export const tutorialTrack = {
 };
 
 export function freshPlayer() {
-  return { x: 60, y: 360, spawnX: 60, spawnY: 360, checkpointIndex: 0, vx: 0, vy: 0, w: 32, h: 62, grounded: false, invincible: 0, powered: 0, transformed: false, facing: 1 };
+  return { x: 60, y: 360, spawnX: 60, spawnY: 360, spawnGroundY: 422, checkpointIndex: 0, vx: 0, vy: 0, w: 32, h: 62, grounded: false, invincible: 0, powered: 0, transformed: false, facing: 1 };
 }
 
 export function makeEnemy(x, y, level, seed, forcedType = null) {
@@ -272,6 +272,24 @@ export function makeWorld(level) {
 
   for (let i = 0; i < 8 + Math.floor(level / 3); i += 1) {
     notes.push({ x: 170 + i * (230 - Math.floor(difficulty * 28)), y: 420 - ((i * 37 + level * 19) % 105), collected: false });
+  }
+
+  for (const segment of platforms.filter((platform) => platform.ground && platform.w > 620)) {
+    const markerCount = Math.min(4, Math.floor(segment.w / 520));
+    for (let i = 1; i <= markerCount; i += 1) {
+      const x = segment.x + Math.floor((segment.w / (markerCount + 1)) * i);
+      if (x < 180 || x > length - 220) continue;
+      notes.push({ x, y: 414 - ((i + level) % 2) * 28, collected: false, breather: true });
+    }
+    if (segment.w > 980 && level > 2) {
+      const enemyX = segment.x + Math.floor(segment.w * 0.58);
+      if (enemyX > 260 && enemyX < length - 320) {
+        const patrol = makeEnemy(enemyX, 436, level, Math.floor(enemyX / 31), level > 10 ? "barrel" : level > 6 ? "mic" : "cassette");
+        patrol.min = Math.max(segment.x + 40, enemyX - 90);
+        patrol.max = Math.min(segment.x + segment.w - patrol.w - 40, enemyX + 110);
+        enemies.push(patrol);
+      }
+    }
   }
 
   const finalEnemy = makeEnemy(length - 360, 436, level, 99);

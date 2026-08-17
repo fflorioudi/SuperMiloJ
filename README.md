@@ -296,3 +296,12 @@ Si Windows te oculto extensiones y los archivos quedaron como `02-nino.mp3.mp3`,
 - Al tomar mate cerca de paredes o bloques, Milo se separa del solido para evitar atascos.
 - Los enemigos voladores ahora tambien reaccionan ante muros y no los atraviesan en patrullas largas.
 - `npm run qa` paso con 800/800 corridas, 0 niveles fallando y todos los niveles del album bloqueando la ruta caminada.
+
+### v29
+
+- Se corrigio el respawn de checkpoints: al morir, Milo vuelve al ultimo checkpoint activado usando la altura real del piso o plataforma donde estaba.
+- El respawn recalcula la posicion de los pies despues de perder el mate/look, evitando reaparecer hundido, flotando o cayendo en bucle.
+- El HUD ahora separa la barra de progreso del nivel y la barra de progreso de la cancion.
+- Los tramos largos de suelo que funcionaban como descanso ahora tienen notas guia y, en niveles medios/altos, alguna patrulla terrestre medida.
+- Esos descansos siguen existiendo como respiro entre desafios, pero ya no quedan tan vacios visual ni jugablemente.
+- Queda anotada para la siguiente tanda la pantalla final completa de agradecimiento con Milo y elementos del album usando PNG pixel art.

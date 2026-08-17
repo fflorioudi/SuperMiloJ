@@ -37,6 +37,7 @@ Fecha: 2026-08-17
 - Se valida que ningun nivel del album pueda completarse caminando derecho sin saltar.
 - Se valida que los niveles tardios tengan una duracion minima de ruta automatizada.
 - Se valida que los enemigos voladores no atraviesen muros durante patrullas largas.
+- Se valida la tanda v29 con respawn de checkpoints ajustado, barra separada de cancion y tramos largos de piso menos vacios.
 
 ## Resultado
 
@@ -84,6 +85,9 @@ Fecha: 2026-08-17
 - La ruta `walk-only` falla en los 15 niveles del album, por lo que ya no se puede pasar solo caminando.
 - El mate ya no dibuja aura sobre Milo y el resize de power-up separa al jugador si queda dentro de un solido.
 - Los niveles son mas largos y los finales incluyen 4 pits obligatorios para sostener mejor la tension y la musica.
+- La v29 hace que el checkpoint recuerde la altura real de reaparicion, incluso si Milo pierde transformacion antes de volver.
+- El HUD muestra dos lecturas: avance de recorrido y avance de la cancion, para que se entienda mejor cuanto queda de gameplay y audio.
+- Los espacios de piso amplio se mantienen como respiracion de nivel, pero ahora reciben notas guia y patrullas puntuales cuando son demasiado largos.
 - El script no reemplaza playtesting humano completo, pero ayuda a detectar regresiones fuertes de nivel, audio y fisicas basicas.
 
 ## Como repetir la prueba
